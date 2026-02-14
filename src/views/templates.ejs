@@ -1,0 +1,27 @@
+<section class="panel templates-browser" data-page="templates">
+  <h1>Template Browser</h1>
+  <form method="GET" class="filter-row">
+    <input class="input" type="text" name="search" value="<%= search %>" placeholder="Search templates" />
+    <select class="input" name="category">
+      <option value="">All categories</option>
+      <% categories.forEach((category) => { %>
+        <option value="<%= category %>" <%= selectedCategory === category ? 'selected' : '' %>><%= category %></option>
+      <% }) %>
+    </select>
+    <button class="btn btn-secondary" type="submit">Filter</button>
+  </form>
+
+  <div class="template-browser-grid">
+    <% templates.forEach((template) => { %>
+      <article class="panel template-card">
+        <h2><%= template.name %></h2>
+        <p class="muted"><%= template.category %></p>
+        <p>Required: <%= template.requiredFields.join(', ') %></p>
+        <div class="preview-actions">
+          <a class="btn btn-secondary" href="/templates/<%= template.id %>">View details</a>
+          <a class="btn" href="/generator?templateId=<%= template.id %>">Use this template</a>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+<section class="panel auth-panel">
+  <h1><%= type === 'login' ? 'Login' : 'Create Account' %></h1>
+  <form method="POST" action="/auth/<%= type === 'login' ? 'login' : 'register' %>">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+    <label>Email<input class="input" type="email" name="email" value="<%= values.email || '' %>" required /></label>
+    <label>Password<input class="input" type="password" name="password" required /></label>
+    <% if (errors.length) { %>
+      <ul class="error-list">
+        <% errors.forEach((error) => { %>
+          <li><%= error.msg %></li>
+        <% }) %>
+      </ul>
+    <% } %>
+    <button class="btn" type="submit"><%= type === 'login' ? 'Login' : 'Register' %></button>
+  </form>
+  <p class="muted"><%= type === 'login' ? 'Need an account?' : 'Already have an account?' %> <a href="/auth/<%= type === 'login' ? 'register' : 'login' %>"><%= type === 'login' ? 'Register' : 'Login' %></a></p>
+</section>

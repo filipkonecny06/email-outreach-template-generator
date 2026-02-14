@@ -1,0 +1,41 @@
+<aside class="panel template-panel" aria-label="Template Library">
+  <div class="panel-head">
+    <h2>Template Library</h2>
+    <label class="switch">
+      <input type="checkbox" id="favoritesOnly" />
+      <span>Favorites</span>
+    </label>
+  </div>
+  <label class="label" for="categoryFilter">Category</label>
+  <select id="categoryFilter" class="input">
+    <option value="">All categories</option>
+    <% categories.forEach((category) => { %>
+      <option value="<%= category %>"><%= category %></option>
+    <% }) %>
+  </select>
+
+  <label class="label" for="templateSearch">Search</label>
+  <input id="templateSearch" class="input" type="text" placeholder="Find template..." />
+
+  <ul id="templateList" class="template-list" role="listbox" aria-label="Template results">
+    <% templates.forEach((template) => { %>
+      <li>
+        <button
+          type="button"
+          class="template-item <%= selectedTemplate && selectedTemplate.id === template.id ? 'active' : '' %>"
+          data-template-id="<%= template.id %>"
+          data-required-fields='<%= JSON.stringify(template.requiredFields) %>'
+          aria-label="Select <%= template.name %>"
+        >
+          <span>
+            <strong><%= template.name %></strong>
+            <small><%= template.category %></small>
+          </span>
+          <% if (currentUser) { %>
+            <span class="favorite-toggle <%= favoriteIds.includes(template.id) ? 'active' : '' %>" data-favorite-id="<%= template.id %>" role="button" tabindex="0" aria-label="Toggle Favorite">&#9733;</span>
+          <% } %>
+        </button>
+      </li>
+    <% }) %>
+  </ul>
+</aside>

@@ -1,0 +1,17 @@
+<header class="top-nav">
+  <a href="/" class="brand">OUTREACH<span>OPS</span></a>
+  <nav aria-label="Primary Navigation">
+    <a href="/templates">Templates</a>
+    <% if (currentUser) { %>
+      <a href="/generator">Generator</a>
+      <a href="/history">History</a>
+      <form action="/auth/logout" method="POST" class="inline-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <button type="submit" class="link-btn">Logout</button>
+      </form>
+    <% } else { %>
+      <a href="/auth/login">Login</a>
+      <a href="/auth/register" class="btn btn-small">Get Started</a>
+    <% } %>
+  </nav>
+</header>

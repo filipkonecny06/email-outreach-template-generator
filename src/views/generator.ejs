@@ -1,0 +1,72 @@
+<section class="generator-grid" data-page="generator">
+  <%- include('partials/sidebar') %>
+
+  <section class="panel form-panel" aria-label="Input Form">
+    <h2>Campaign Inputs</h2>
+    <form id="generatorForm" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+      <input type="hidden" id="templateId" name="templateId" value="<%= selectedTemplate ? selectedTemplate.id : '' %>" />
+      <div class="form-grid">
+        <label>First Name<input class="input" name="firstName" required /></label>
+        <label>Site Name<input class="input" name="siteName" required /></label>
+        <label>Site URL<input class="input" name="siteUrl" type="url" required /></label>
+        <label>Topic<input class="input" name="topic" required /></label>
+        <label>Article URL<input class="input" name="articleUrl" type="url" required /></label>
+        <label>Broken URL (optional)<input class="input" name="brokenUrl" type="url" /></label>
+        <label>Your URL<input class="input" name="yourUrl" type="url" required /></label>
+        <label>Offer Angle<input class="input" name="offerAngle" required /></label>
+        <label>Specific Compliment<input class="input" name="specificCompliment" required /></label>
+      </div>
+
+      <div class="form-grid campaign-controls">
+        <label>Goal
+          <select class="input" name="goal">
+            <option value="link">Link</option>
+            <option value="guest post">Guest Post</option>
+            <option value="mention">Mention</option>
+          </select>
+        </label>
+        <label>Tone
+          <select class="input" name="tone">
+            <option value="direct">Direct</option>
+            <option value="friendly">Friendly</option>
+            <option value="formal">Formal</option>
+          </select>
+        </label>
+        <label>Length
+          <select class="input" name="length">
+            <option value="short">Short</option>
+            <option value="medium">Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="checkbox-row"><input type="checkbox" name="includeFollowUps" id="includeFollowUps" /> Include follow-up sequence</label>
+      <button type="submit" class="btn">Generate Preview</button>
+      <p id="formError" class="form-error" role="alert"></p>
+    </form>
+  </section>
+
+  <section class="panel preview-panel" aria-label="Output Preview">
+    <h2>Live Output Preview</h2>
+    <div class="preview-block">
+      <h3>Subject</h3>
+      <pre id="subjectPreview" class="preview-text">Select a template and enter campaign data.</pre>
+    </div>
+    <div class="preview-block">
+      <h3>Body</h3>
+      <pre id="bodyPreview" class="preview-text"></pre>
+    </div>
+    <div id="followUpContainer"></div>
+
+    <div class="preview-actions sticky-actions">
+      <button class="btn btn-secondary" id="copySubjectBtn" type="button">Copy Subject</button>
+      <button class="btn btn-secondary" id="copyBodyBtn" type="button">Copy Body</button>
+      <button class="btn btn-secondary" id="downloadTxtBtn" type="button">Download .txt</button>
+      <button class="btn btn-secondary" id="exportCsvBtn" type="button">Export CSV Row</button>
+      <button class="btn" id="saveHistoryBtn" type="button">Save to History</button>
+    </div>
+  </section>
+</section>
+<script src="/js/generator.js" defer></script>

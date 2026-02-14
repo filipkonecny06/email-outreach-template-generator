@@ -1,0 +1,34 @@
+<section class="panel" data-page="history">
+  <h1>Generation History</h1>
+  <form method="GET" class="filter-row">
+    <input class="input" name="search" value="<%= search %>" placeholder="Search subject or body" />
+    <select class="input" name="order">
+      <option value="newest" <%= order === 'desc' ? 'selected' : '' %>>Newest</option>
+      <option value="oldest" <%= order === 'asc' ? 'selected' : '' %>>Oldest</option>
+    </select>
+    <button class="btn btn-secondary" type="submit">Apply</button>
+  </form>
+
+  <div class="history-list">
+    <% if (!entries.length) { %>
+      <p class="muted">No saved generations yet.</p>
+    <% } %>
+    <% entries.forEach((entry) => { %>
+      <article class="panel history-card">
+        <header>
+          <h2><%= entry.subject %></h2>
+          <p class="muted"><%= entry.Template ? `${entry.Template.name} (${entry.Template.category})` : 'Custom template' %> · <%= new Date(entry.createdAt).toLocaleString() %></p>
+        </header>
+        <pre class="preview-text"><%= entry.body %></pre>
+        <div class="preview-actions">
+          <button class="btn btn-secondary copy-history" type="button" data-subject="<%- entry.subject %>" data-body="<%- entry.body %>">Copy</button>
+          <form action="/history/<%= entry.id %>?_method=DELETE" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button class="btn btn-danger" type="submit">Delete</button>
+          </form>
+        </div>
+      </article>
+    <% }) %>
+  </div>
+</section>
+<script src="/js/history.js" defer></script>

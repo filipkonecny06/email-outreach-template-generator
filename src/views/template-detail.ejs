@@ -1,0 +1,21 @@
+<section class="panel template-detail">
+  <h1><%= template.name %></h1>
+  <p class="muted"><%= template.category %></p>
+
+  <div class="preview-block">
+    <h2>Required Variables</h2>
+    <p><%= template.requiredFields.join(', ') %></p>
+  </div>
+
+  <div class="preview-block">
+    <h2>Subject Template</h2>
+    <pre class="preview-text"><%= template.subjectTemplate %></pre>
+  </div>
+
+  <div class="preview-block">
+    <h2>Body Template</h2>
+    <pre class="preview-text"><%= template.bodyTemplate %></pre>
+  </div>
+
+  <a class="btn" href="/generator?templateId=<%= template.id %>">Use this template</a>
+</section>
