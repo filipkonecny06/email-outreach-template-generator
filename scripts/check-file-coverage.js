@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+/** Enforces focused coverage floors for browser and authentication modules with higher risk. */
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -38,10 +39,16 @@ const TARGETS = Object.freeze({
   'src/public/js/history.js': Object.freeze({ lines: 85, functions: 90, branches: 70 })
 });
 
+/** Normalizes platform separators before matching absolute coverage-report paths. */
 function normalized(filePath) {
   return filePath.split(path.sep).join('/');
 }
 
+/**
+ * Checks per-file thresholds that complement c8's aggregate project coverage gate.
+ *
+ * @throws {Error} When a target is absent or below one of its required percentages.
+ */
 function checkFileCoverage(summaryPath = path.resolve('coverage/coverage-summary.json')) {
   const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
   for (const [target, minimums] of Object.entries(TARGETS)) {

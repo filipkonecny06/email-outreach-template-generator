@@ -1,3 +1,4 @@
+<%# Primary navigation changes by session identity without exposing any credential data. %>
 <header class="top-nav">
   <a href="/" class="brand">OUTREACH<span>OPS</span></a>
   <nav aria-label="Primary Navigation">
@@ -5,6 +6,7 @@
     <% if (currentUser) { %>
       <a href="/generator">Generator</a>
       <a href="/history">History</a>
+      <%# Logout mutates the session and therefore remains a CSRF-protected POST action. %>
       <form action="/auth/logout" method="POST" class="inline-form">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
         <button type="submit" class="link-btn">Logout</button>

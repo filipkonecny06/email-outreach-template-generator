@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+/** Command-line entry point for catalog validation, inspection, and database synchronization. */
 require('dotenv').config({ quiet: true });
 
 const { TemplateCatalogRepository } = require('../src/repositories/templateCatalogRepository');
@@ -12,6 +13,10 @@ function printHelp() {
   );
 }
 
+/**
+ * Executes one catalog command.
+ * Sync defaults to a read-only plan and requires an explicit --apply flag for writes.
+ */
 async function main(args = process.argv.slice(2)) {
   const [command, ...options] = args;
   const service = new TemplateCatalogService({ repository: new TemplateCatalogRepository() });
@@ -33,12 +38,14 @@ async function main(args = process.argv.slice(2)) {
   }
 
   if (command === 'sync') {
+    // Load Sequelize lazily so validation and listing do not require database configuration.
     const { Template, sequelize } = require('../src/models');
     try {
       await sequelize.authenticate();
       const summary = await service.sync({ Template, dryRun: !options.includes('--apply') });
       process.stdout.write(`${JSON.stringify(summary)}\n`);
     } finally {
+      // A short-lived CLI must release its connection pool on both success and failure.
       await sequelize.close();
     }
     return;

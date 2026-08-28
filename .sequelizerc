@@ -1,3 +1,4 @@
+// Centralize sequelize-cli's non-default config, model, and migration paths.
 const path = require('path');
 
 module.exports = {

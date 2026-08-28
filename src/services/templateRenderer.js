@@ -1,3 +1,4 @@
+/** Converts template records and form values into plain-text outreach copy. */
 const TOKEN_PATTERN = /\{([a-zA-Z0-9_]+)\}/g;
 
 const TONE_PROFILES = Object.freeze({
@@ -39,10 +40,15 @@ function normalizeChoice(value, allowed, fallback) {
  * entities from leaking into clipboard, CSV, downloads, and saved history.
  */
 class OutreachTemplateRenderer {
+  /** @param {object} [options] - Unknown-token behavior for incomplete previews. */
   constructor({ preserveUnknownTokens = true } = {}) {
     this.preserveUnknownTokens = preserveUnknownTokens;
   }
 
+  /**
+   * Performs one substitution pass over a template.
+   * A single pass prevents token-like user input from being interpreted as template syntax.
+   */
   render(template, values = {}) {
     if (!template) return '';
     return String(template).replace(TOKEN_PATTERN, (placeholder, token) => {
@@ -54,6 +60,7 @@ class OutreachTemplateRenderer {
     });
   }
 
+  /** Returns unique token names in first-appearance order. */
   extractTokens(template) {
     const tokens = new Set();
     for (const match of String(template || '').matchAll(TOKEN_PATTERN)) {
@@ -62,6 +69,7 @@ class OutreachTemplateRenderer {
     return [...tokens];
   }
 
+  /** Composes the catalog's content blocks according to a supported tone and length profile. */
   composeBody(content, { tone = 'friendly', length = 'medium' } = {}) {
     const selectedTone = normalizeChoice(tone, Object.keys(TONE_PROFILES), 'friendly');
     const selectedLength = normalizeChoice(length, Object.keys(LENGTH_BLOCKS), 'medium');
@@ -78,6 +86,9 @@ class OutreachTemplateRenderer {
     return paragraphs.join('\n\n');
   }
 
+  /**
+   * Renders the primary message and, when requested, its configured follow-up sequence.
+   */
   renderCampaign(template, values = {}, { includeFollowUps = false } = {}) {
     const tone = normalizeChoice(values.tone, Object.keys(TONE_PROFILES), 'friendly');
     const length = normalizeChoice(values.length, Object.keys(LENGTH_BLOCKS), 'medium');

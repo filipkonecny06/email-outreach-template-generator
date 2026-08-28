@@ -1,3 +1,4 @@
+/** Defines stored snapshots of generated subjects, bodies, and source payloads. */
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -10,6 +11,7 @@ module.exports = (sequelize) => {
       },
       TemplateId: {
         type: DataTypes.INTEGER,
+        // Historical copy remains useful if its source template is later removed.
         allowNull: true
       },
       subject: {
@@ -21,6 +23,7 @@ module.exports = (sequelize) => {
         allowNull: false
       },
       payload: {
+        // Keeping normalized inputs beside the rendered output supports later auditing.
         type: DataTypes.JSON,
         allowNull: false
       }

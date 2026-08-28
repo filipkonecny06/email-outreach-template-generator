@@ -1,3 +1,4 @@
+/** Validates the version-controlled template catalog and synchronizes catalog-managed rows. */
 const Ajv2020 = require('ajv/dist/2020');
 const { Op } = require('sequelize');
 const { OutreachTemplateRenderer } = require('./templateRenderer');
@@ -13,14 +14,17 @@ const RESERVED_RENDER_TOKENS = new Set([
 ]);
 const IMPLICIT_RENDER_FIELDS = new Set(['firstName']);
 
+/** Converts AJV's structured failures into readable CLI/startup diagnostics. */
 function formatAjvErrors(errors = []) {
   return errors.map((error) => `${error.instancePath || '/'} ${error.message}`.trim());
 }
 
+/** Produces the default database body used by views that do not select tone or length. */
 function contentToBodyTemplate(content, renderer = new OutreachTemplateRenderer()) {
   return renderer.composeBody(content, { tone: 'friendly', length: 'medium' });
 }
 
+/** Recursively sorts object keys so semantic JSON comparisons ignore key insertion order. */
 function stableJsonValue(value) {
   if (Array.isArray(value)) return value.map(stableJsonValue);
   if (value && typeof value === 'object') {
@@ -33,17 +37,24 @@ function stableJsonValue(value) {
   return value;
 }
 
+/** Compares JSON-compatible values after canonicalizing object key order. */
 function valuesDiffer(left, right) {
   return JSON.stringify(stableJsonValue(left)) !== JSON.stringify(stableJsonValue(right));
 }
 
 class TemplateCatalogService {
+  /** @param {object} dependencies - Catalog reader plus optional renderer and schema validator. */
   constructor({ repository, renderer = new OutreachTemplateRenderer(), validator } = {}) {
     this.repository = repository;
     this.renderer = renderer;
     this.validator = validator;
   }
 
+  /**
+   * Validates both the JSON shape and cross-field business rules before returning the catalog.
+   *
+   * @throws {Error} With actionable schema or semantic validation details.
+   */
   loadAndValidate() {
     const schema = this.repository.readSchema();
     const catalog = this.repository.readCatalog();
@@ -60,11 +71,13 @@ class TemplateCatalogService {
     return catalog;
   }
 
+  /** Returns validated catalog templates, optionally limited to one category. */
   list({ category } = {}) {
     const templates = this.loadAndValidate().templates;
     return category ? templates.filter((template) => template.category === category) : templates;
   }
 
+  /** Maps one catalog entry onto the database projection used by Sequelize. */
   toDatabaseRecord(template, timestamps = {}) {
     const followUps = template.followUps || [];
     return {
@@ -84,6 +97,10 @@ class TemplateCatalogService {
     };
   }
 
+  /**
+   * Reconciles catalog-owned rows and returns a change summary.
+   * Apply mode is transactional so creates, updates, and stale-row deletes commit together.
+   */
   async sync({ Template, dryRun = true, logger = { info() {} } }) {
     const desired = this.loadAndValidate().templates.map((template) =>
       this.toDatabaseRecord(template)
@@ -96,6 +113,7 @@ class TemplateCatalogService {
         ...(transaction ? { transaction } : {})
       });
       const existingByKey = new Map(existing.map((template) => [template.catalogKey, template]));
+      // Only rows with catalog keys are managed; manually created rows remain untouched.
       const staleTemplates = existing.filter(
         (template) => template.catalogKey && !desiredKeys.has(template.catalogKey)
       );
@@ -142,6 +160,7 @@ class TemplateCatalogService {
 
     let summary;
     if (dryRun) {
+      // Dry runs read and compare database rows but never write; the summary may still be logged.
       summary = await synchronize();
     } else {
       if (!Template.sequelize?.transaction) {

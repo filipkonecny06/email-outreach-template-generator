@@ -1,4 +1,6 @@
+/** Manages dynamic template filtering, selection, and per-user favorite controls. */
 class OutreachTemplateListController {
+  /** @param {object} options - DOM, transport, cancellation, selection, and notification adapters. */
   constructor({
     documentObject = globalThis.document,
     AbortControllerImpl = globalThis.AbortController,
@@ -18,12 +20,14 @@ class OutreachTemplateListController {
     this.refreshRevision = 0;
   }
 
+  /** Signals the current browser fetch to abort and invalidates results already resolving. */
   destroy() {
     this.refreshController?.abort();
     this.refreshController = null;
     this.refreshRevision += 1;
   }
 
+  /** Delegates clicks from the replaceable template list to the correct action. */
   handleClick(event) {
     const favoriteToggle = event.target.closest('.favorite-toggle');
     if (favoriteToggle) {
@@ -37,6 +41,7 @@ class OutreachTemplateListController {
     if (button) this.onSelect(button);
   }
 
+  /** Toggles a favorite once per template while its request is pending. */
   async toggleFavorite(button) {
     const templateId = button.dataset.favoriteId;
     if (this.pendingFavoriteIds.has(templateId)) return;
@@ -74,6 +79,7 @@ class OutreachTemplateListController {
     const label = this.document.createElement('span');
     const name = this.document.createElement('strong');
     const category = this.document.createElement('small');
+    // API values enter text nodes only, which prevents template names from becoming markup.
     name.textContent = template.name;
     category.textContent = template.category;
     label.append(name, category);
@@ -99,6 +105,10 @@ class OutreachTemplateListController {
     return row;
   }
 
+  /**
+   * Signals superseded browser fetches to abort; this cannot guarantee server work stops.
+   * The revision guard prevents a late response from replacing newer results.
+   */
   async refresh() {
     const { searchInput, categoryFilter, favoritesOnly, templateList } = this.elements;
     this.refreshController?.abort();

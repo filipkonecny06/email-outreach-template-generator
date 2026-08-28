@@ -1,3 +1,4 @@
+/** Writes JSON lines; callers supply request or correlation metadata when available. */
 function write(level, message, meta = null) {
   const timestamp = new Date().toISOString();
   const line = JSON.stringify({ timestamp, level, message, ...(meta ? { meta } : {}) });

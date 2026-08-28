@@ -1,6 +1,8 @@
+/** Prepares template records for the generator, browser, and detail page views. */
 const { TemplateFieldService } = require('../services/templateFieldService');
 
 class TemplateBrowserController {
+  /** @param {object} dependencies - Template query adapter, catalog categories, and field policy. */
   constructor({ templateRepository, categories, fieldService = new TemplateFieldService() }) {
     this.templateRepository = templateRepository;
     this.categories = categories;
@@ -16,6 +18,7 @@ class TemplateBrowserController {
       const templates = (await this.templateRepository.list()).map((template) =>
         this.fieldService.decorate(template)
       );
+      // Selection is limited to the loaded collection; arbitrary query IDs are never trusted.
       const selectedTemplate = templates.find((template) => template.id === templateId) || null;
       const favoriteIds = await this.templateRepository.listFavoriteIds(req.session.user.id);
 

@@ -1,3 +1,4 @@
+/* Design tokens keep color, elevation, and status meaning consistent across every page. */
 :root {
   --bg: #06080d;
   --panel: rgba(17, 22, 32, 0.82);
@@ -10,6 +11,7 @@
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
 
+/* Global document defaults */
 * {
   box-sizing: border-box;
 }
@@ -31,6 +33,7 @@ body {
   line-height: 1.55;
 }
 
+/* Decorative background is isolated from pointer and accessibility interactions. */
 .bg-gradient {
   position: fixed;
   inset: -20% -10%;
@@ -52,6 +55,7 @@ body {
   }
 }
 
+/* Shared application shell and navigation */
 .top-nav,
 .site-footer,
 .app-shell {
@@ -97,6 +101,7 @@ body {
   margin: 2rem auto 4rem;
 }
 
+/* Reusable surfaces and landing-page layout */
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -147,6 +152,7 @@ body {
   font-size: 1.7rem;
 }
 
+/* Interactive controls share visible keyboard focus and predictable status colors. */
 .btn {
   border: 1px solid transparent;
   background: linear-gradient(120deg, #2ea7c8, #38d996);
@@ -185,6 +191,7 @@ body {
   color: #fff;
 }
 
+/* Landing page content */
 .feature-grid {
   margin-top: 1.2rem;
   display: grid;
@@ -205,6 +212,7 @@ body {
   padding: 0.8rem 0;
 }
 
+/* Generator workspace and template selector */
 .generator-grid {
   display: grid;
   grid-template-columns: 330px 1fr 1fr;
@@ -277,6 +285,7 @@ body {
   color: #ffd567;
 }
 
+/* Contextual campaign form */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -303,6 +312,7 @@ body {
   min-height: 1.2rem;
 }
 
+/* Plain-text output preserves line breaks while wrapping long user-supplied values. */
 .preview-text {
   background: rgba(5, 7, 12, 0.95);
   border: 1px solid var(--border);
@@ -325,6 +335,7 @@ body {
   padding-top: 1rem;
 }
 
+/* Catalog browser, saved history, and account views */
 .templates-browser .template-browser-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -383,6 +394,7 @@ body {
   text-align: center;
 }
 
+/* Toasts stay above workspace content; status variants use contrasting border colors. */
 .toast-region {
   position: fixed;
   right: 1rem;
@@ -411,6 +423,7 @@ body {
   color: var(--muted);
 }
 
+/* Collapse dense desktop grids in two stages to keep forms and previews usable on small screens. */
 @media (max-width: 1100px) {
   .generator-grid {
     grid-template-columns: 1fr 1fr;

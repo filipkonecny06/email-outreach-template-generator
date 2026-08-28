@@ -1,3 +1,4 @@
+/** Coordinates authenticated history filtering, pagination, rendering, and deletion. */
 const { Op } = require('sequelize');
 const { GenerationHistory, Template } = require('../models');
 const {
@@ -6,6 +7,7 @@ const {
   requestedPageNumber
 } = require('../services/historyService');
 
+/** Builds pagination links while retaining the active search and sort choices. */
 function historyPageUrl({ page, search, order }) {
   const query = new URLSearchParams({ page: String(page), order });
   if (search) query.set('search', search);
@@ -13,6 +15,7 @@ function historyPageUrl({ page, search, order }) {
 }
 
 class HistoryController {
+  /** @param {object} dependencies - Persistence models and an optional test service. */
   constructor({ GenerationHistoryModel, TemplateModel, historyService }) {
     this.GenerationHistory = GenerationHistoryModel;
     this.Template = TemplateModel;
@@ -22,6 +25,7 @@ class HistoryController {
     this.deleteHistoryEntry = this.deleteHistoryEntry.bind(this);
   }
 
+  /** Renders a bounded history page for the authenticated user and active filters. */
   async historyPage(req, res, next) {
     try {
       const search = String(req.query.search || '')
@@ -30,6 +34,7 @@ class HistoryController {
       const order = req.query.order === 'oldest' ? 'ASC' : 'DESC';
       const orderQuery = order === 'ASC' ? 'oldest' : 'newest';
       const requestedPage = requestedPageNumber(req.query.page);
+      // Ownership is part of every query, rather than being checked after records are loaded.
       const where = { UserId: req.session.user.id };
 
       if (search) {
@@ -66,12 +71,14 @@ class HistoryController {
     }
   }
 
+  /** Deletes a history entry only when it belongs to the authenticated user. */
   async deleteHistoryEntry(req, res, next) {
     try {
       const entryId = Number(req.params.id);
       if (!Number.isInteger(entryId) || entryId < 1) {
         return res.status(404).render('404', { pageTitle: 'Not Found' });
       }
+      // Combining the entry and user IDs prevents deleting another user's saved draft.
       const entry = await this.GenerationHistory.findOne({
         where: {
           id: entryId,

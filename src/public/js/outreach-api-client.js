@@ -1,9 +1,12 @@
+/** Owns the browser's JSON transport contract for the outreach API. */
 class OutreachApiClient {
+  /** @param {object} [options] - Fetch adapter and session-bound CSRF token. */
   constructor({ fetchImpl = globalThis.fetch, csrfToken = '' } = {}) {
     this.fetch = fetchImpl;
     this.csrfToken = csrfToken;
   }
 
+  /** Extracts field-level API diagnostics before falling back to a general message. */
   errorMessage(data, fallback) {
     const details = data?.error?.details;
     const fieldErrors = Array.isArray(details)
@@ -19,12 +22,17 @@ class OutreachApiClient {
     return data?.error?.message || data?.message || fallback;
   }
 
+  /**
+   * Sends one API request and translates non-success responses into ordinary errors.
+   * An AbortSignal lets the browser abandon a stale fetch; server work may already be running.
+   */
   async request(path, { method = 'GET', payload, signal } = {}, fallback = 'Request failed.') {
     const hasPayload = payload !== undefined;
     const response = await this.fetch(path, {
       method,
       headers: {
         ...(hasPayload ? { 'Content-Type': 'application/json' } : {}),
+        // Mutating JSON requests cannot use a hidden form field, so the token travels in a header.
         ...(method === 'GET' ? {} : { 'X-CSRF-Token': this.csrfToken })
       },
       ...(hasPayload ? { body: JSON.stringify(payload) } : {}),
@@ -64,6 +72,7 @@ class OutreachApiClient {
     );
   }
 
+  /** Sends form values for the server to render and save as a history snapshot. */
   saveHistory(payload) {
     return this.request('/api/history', { method: 'POST', payload }, 'Failed to save history.');
   }

@@ -1,3 +1,7 @@
+/**
+ * Translates the shared database configuration into options for each MySQL consumer.
+ */
+/** Returns TLS options only when encrypted database transport is explicitly enabled. */
 function createTlsOptions(database) {
   if (!database.ssl?.enabled) return undefined;
 
@@ -7,6 +11,7 @@ function createTlsOptions(database) {
   };
 }
 
+/** Builds mysql2 options for the server-side session connection pool. */
 function createMySqlConnectionOptions(database) {
   const ssl = createTlsOptions(database);
   return {
@@ -19,6 +24,7 @@ function createMySqlConnectionOptions(database) {
   };
 }
 
+/** Builds options understood by sequelize-cli migrations. */
 function createSequelizeCliOptions(database) {
   const ssl = createTlsOptions(database);
   return {
@@ -30,6 +36,7 @@ function createSequelizeCliOptions(database) {
   };
 }
 
+/** Builds runtime Sequelize options while retaining the project's model naming convention. */
 function createSequelizeOptions(database) {
   return {
     ...createSequelizeCliOptions(database),

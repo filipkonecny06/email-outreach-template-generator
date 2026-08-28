@@ -1,3 +1,4 @@
+/** Implements template selection, required-field policy, and campaign rendering. */
 const { Template, Favorite } = require('../models');
 const { TemplateRepository } = require('../repositories/templateRepository');
 const { TemplateFieldService, fieldList } = require('./templateFieldService');
@@ -6,6 +7,7 @@ const { NotFoundError, ValidationError } = require('../utils/errors');
 
 const normalizeRequiredFields = fieldList;
 
+/** Returns declared fields whose submitted values are absent or blank. */
 function missingFields(requiredFields, payload) {
   return normalizeRequiredFields(requiredFields).filter((field) => {
     const value = payload[field];
@@ -14,6 +16,9 @@ function missingFields(requiredFields, payload) {
 }
 
 class TemplateGenerationService {
+  /**
+   * @param {object} [dependencies] - Query, rendering, and field-policy collaborators.
+   */
   constructor({
     templateRepository = new TemplateRepository({ Template, Favorite }),
     renderer = new OutreachTemplateRenderer(),
@@ -24,6 +29,7 @@ class TemplateGenerationService {
     this.fieldService = fieldService;
   }
 
+  /** Returns decorated template DTOs with an optional per-user favorite flag. */
   async getTemplates(filters) {
     const templates = await this.templateRepository.list(filters);
     return templates.map((template) => ({
@@ -32,6 +38,12 @@ class TemplateGenerationService {
     }));
   }
 
+  /**
+   * Loads and renders one template after enforcing its context-sensitive required fields.
+   *
+   * @throws {NotFoundError} When the selected template no longer exists.
+   * @throws {ValidationError} When a value required by the selected output is missing.
+   */
   async renderFromTemplate(templateId, payload, includeFollowUps = false) {
     const template = await this.templateRepository.findById(templateId);
     if (!template) throw new NotFoundError('Template');

@@ -1,3 +1,4 @@
+/** Reads the version-controlled catalog and its validation schema from disk. */
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -22,6 +23,7 @@ class TemplateCatalogRepository {
 
   #readJson(filePath) {
     try {
+      // Reads are synchronous by design: this adapter runs during startup or short-lived CLI work.
       return JSON.parse(this.fileSystem.readFileSync(filePath, 'utf8'));
     } catch (error) {
       error.message = `Unable to read ${filePath}: ${error.message}`;

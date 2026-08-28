@@ -1,3 +1,4 @@
+/** Defines user credentials while excluding password hashes from ordinary queries. */
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -17,6 +18,7 @@ module.exports = (sequelize) => {
     },
     {
       tableName: 'Users',
+      // Authentication must opt in to sensitive credential data through withPassword.
       defaultScope: {
         attributes: { exclude: ['passwordHash'] }
       },

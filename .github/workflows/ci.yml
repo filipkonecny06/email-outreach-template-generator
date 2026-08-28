@@ -6,6 +6,7 @@ on:
     branches: [main]
 
 permissions:
+  # CI only reads repository contents; no job receives write access by default.
   contents: read
 
 concurrency:
@@ -18,9 +19,11 @@ jobs:
     timeout-minutes: 15
     strategy:
       fail-fast: false
+      # Test every Node.js major version declared in package.json.
       matrix:
         node-version: [22, 24]
     steps:
+      # Full commit SHAs make third-party workflow execution reproducible and auditable.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -165,6 +168,7 @@ jobs:
       - run: npm ci
       - run: npm run db:setup
       - run: npm run db:smoke -- --schema=current
+      # Exercise two rollbacks and the corresponding legacy contract before migrating forward again.
       - run: npm run db:migrate:undo
       - run: npm run db:migrate:undo
       - run: npm run db:smoke -- --schema=legacy

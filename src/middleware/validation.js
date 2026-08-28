@@ -1,8 +1,10 @@
+/** Declares validation and normalization rules at the HTTP request boundary. */
 const { body } = require('express-validator');
 
 const sanitizeText = (value) => String(value || '').trim();
 const sanitizeUrl = (value) => String(value || '').trim();
 
+/** Enforces bcrypt's 72-byte input limit so distinct long passwords cannot truncate identically. */
 function hasBcryptSafeByteLength(value) {
   return Buffer.byteLength(String(value || ''), 'utf8') <= 72;
 }
@@ -25,6 +27,7 @@ function optionalUrl(field) {
     .withMessage(`${field} must contain at most 2048 characters.`);
 }
 
+// These names form the allowlist later enforced by express-validator's matchedData().
 const outreachFieldRules = [
   body('templateId').isInt({ min: 1 }).withMessage('Template is required.').toInt(),
   optionalText('firstName', 80),

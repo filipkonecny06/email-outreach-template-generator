@@ -1,3 +1,7 @@
+/**
+ * Builds the Express application and its MySQL-backed session store.
+ * Middleware is registered here so HTTP security policy and route boundaries stay reviewable.
+ */
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const express = require('express');
@@ -22,6 +26,14 @@ const authRoutes = require('./routes/auth');
 const historyRoutes = require('./routes/history');
 const apiRoutes = require('./routes/api');
 
+/**
+ * Creates the persistent session adapter used by Express.
+ * Keeping sessions in MySQL avoids losing logins when the Node.js process restarts.
+ *
+ * @param {object} config - Validated application configuration.
+ * @param {object} [dependencies] - Optional adapters used by tests.
+ * @returns {object} An express-session compatible store.
+ */
 function createSessionStore(config, { Store = MySQLStore, createPool = mysql.createPool } = {}) {
   const connection = createPool({
     ...createMySqlConnectionOptions(config.database),
@@ -44,6 +56,13 @@ function createSessionStore(config, { Store = MySQLStore, createPool = mysql.cre
   );
 }
 
+/**
+ * Composes the HTTP application without opening a network port.
+ * Dependency parameters keep integration tests isolated from real infrastructure.
+ *
+ * @param {object} [options] - Application dependencies and validated configuration.
+ * @returns {import('express').Express} A configured Express application.
+ */
 function createApp({
   config = loadConfig(),
   sessionStore = createSessionStore(config),
@@ -51,6 +70,7 @@ function createApp({
 } = {}) {
   const app = express();
   const { csrfSynchronisedProtection, generateToken } = csrfSync({
+    // Browser forms submit the token in the body; JSON clients use a request header.
     getTokenFromRequest: (req) =>
       req.is('application/x-www-form-urlencoded') ? req.body._csrf : req.get('x-csrf-token')
   });
@@ -61,6 +81,7 @@ function createApp({
   app.set('views', path.join(__dirname, 'views'));
   app.set('layout', 'layout');
 
+  // The same request ID is returned to clients and included in error logs for correlation.
   app.use((req, res, next) => {
     req.id = req.get('x-request-id') || randomUUID();
     res.setHeader('x-request-id', req.id);
@@ -70,6 +91,7 @@ function createApp({
     next();
   });
   app.use(expressLayouts);
+  // The application deliberately serves scripts and styles from its own origin only.
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -89,10 +111,12 @@ function createApp({
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
     })
   );
+  // Liveness stays independent of sessions, CSRF, and authentication for container probes.
   app.get('/healthz', (_req, res) =>
     res.set('Cache-Control', 'no-store').status(200).json({ ok: true, status: 'live' })
   );
   app.use(express.static(path.join(__dirname, 'public'), { maxAge: 0, etag: true }));
+  // Personalized and token-bearing HTML/API responses must not be cached by shared clients.
   app.use((_req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
     next();
@@ -120,6 +144,7 @@ function createApp({
   app.use(express.urlencoded({ extended: false, limit: config.bodyLimit }));
   app.use(express.json({ limit: config.bodyLimit }));
   app.use(methodOverride('_method'));
+  // The signed cookie holds only the session ID; session data remains in MySQL.
   app.use(
     session({
       name: config.session.name,
@@ -135,6 +160,7 @@ function createApp({
       }
     })
   );
+  // Synchronizer tokens depend on the session, so CSRF protection must follow session setup.
   app.use(csrfSynchronisedProtection);
   app.use(attachUser);
   app.use((req, res, next) => {
@@ -143,6 +169,7 @@ function createApp({
     next();
   });
 
+  // Authentication gets a tighter limit than ordinary application traffic.
   const authLimiter = rateLimit({
     windowMs: config.rateLimit.authWindowMs,
     limit: config.rateLimit.authMax,

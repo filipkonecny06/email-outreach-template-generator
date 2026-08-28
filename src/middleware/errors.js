@@ -1,10 +1,13 @@
+/** Centralizes path-based error formats, safe responses, and structured failure logging. */
 const logger = require('../utils/logger');
 
+/** Uses the API path boundary to select the JSON error contract. */
 function wantsJson(req) {
   const requestPath = req.path || String(req.originalUrl || '').split('?')[0];
   return requestPath === '/api' || requestPath.startsWith('/api/');
 }
 
+/** Sends the correct not-found representation for API and browser routes. */
 exports.notFound = (req, res) => {
   if (wantsJson(req)) {
     return res.status(404).json({
@@ -14,6 +17,7 @@ exports.notFound = (req, res) => {
   return res.status(404).render('404', { pageTitle: 'Page Not Found' });
 };
 
+/** Creates the final Express error handler with an injectable structured logger. */
 function createErrorHandler({ appLogger = logger } = {}) {
   return (err, req, res, next) => {
     const status = Number(err.status || (err.code === 'EBADCSRFTOKEN' ? 403 : 500));
@@ -25,9 +29,11 @@ function createErrorHandler({ appLogger = logger } = {}) {
       ...(status >= 500 ? { stack: err.stack } : {})
     };
 
+    // Stack traces are operational details: log them for server errors, never send them to users.
     if (status >= 500) appLogger.error(err.message, metadata);
     else appLogger.warn(err.message, metadata);
 
+    // Express must finish a response already in progress; sending again would corrupt it.
     if (res.headersSent) return next(err);
 
     res.locals.csrfToken ??= '';

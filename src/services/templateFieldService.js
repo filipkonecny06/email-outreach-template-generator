@@ -1,3 +1,4 @@
+/** Derives the input fields needed by a template's main message and follow-ups. */
 const { OutreachTemplateRenderer } = require('./templateRenderer');
 
 function fieldList(value) {
@@ -16,10 +17,15 @@ function plainTemplate(template) {
 }
 
 class TemplateFieldService {
+  /** @param {object} [dependencies] - Token renderer used for requirement analysis. */
   constructor({ renderer = new OutreachTemplateRenderer() } = {}) {
     this.renderer = renderer;
   }
 
+  /**
+   * Splits declared fields between the main message and follow-up-only content.
+   * Already-decorated records provide this split; raw model or catalog records derive it.
+   */
   requirementsFor(template) {
     const record = plainTemplate(template);
     if (Object.prototype.hasOwnProperty.call(record, 'followUpRequiredFields')) {

@@ -1,8 +1,12 @@
+/**
+ * Adapts JSON API requests to template-generation and persistence operations.
+ */
 const { validationResult, matchedData } = require('express-validator');
 const { Template, Favorite, GenerationHistory } = require('../models');
 const templateService = require('../services/templateService');
 const { NotFoundError } = require('../utils/errors');
 
+/** Sends the API's stable field-validation envelope with the current request ID. */
 function validationFailure(req, res, errors) {
   return res.status(422).json({
     error: {
@@ -14,11 +18,15 @@ function validationFailure(req, res, errors) {
   });
 }
 
+/** Normalizes an optional query-string value to a bounded, trimmed string. */
 function stringQuery(value, maxLength = 120) {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
 }
 
 class ApiController {
+  /**
+   * @param {object} dependencies - Models and generation service required by API operations.
+   */
   constructor({
     TemplateModel,
     FavoriteModel,
@@ -35,11 +43,13 @@ class ApiController {
     this.getTemplates = this.getTemplates.bind(this);
   }
 
+  /** Validates browser input and returns generated plain-text fields as JSON. */
   async preview(req, res, next) {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return validationFailure(req, res, errors);
 
+      // matchedData is an allowlist: unexpected body properties never enter domain rendering.
       const data = matchedData(req, { locations: ['body'] });
       const rendered = await this.generationService.renderFromTemplate(
         Number(data.templateId),
@@ -57,6 +67,7 @@ class ApiController {
     }
   }
 
+  /** Creates or removes the current user's favorite relationship for one template. */
   async toggleFavorite(req, res, next) {
     try {
       const templateId = Number(req.params.templateId);
@@ -66,6 +77,7 @@ class ApiController {
       if (!template) throw new NotFoundError('Template');
 
       const where = { UserId: req.session.user.id, TemplateId: templateId };
+      // The unique index prevents duplicate rows for the same user-template relationship.
       const [favorite, created] = await this.Favorite.findOrCreate({ where, defaults: where });
 
       if (!created) {
@@ -79,12 +91,14 @@ class ApiController {
     }
   }
 
+  /** Re-renders validated inputs and stores the server-derived result in user history. */
   async saveHistory(req, res, next) {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return validationFailure(req, res, errors);
 
       const payload = matchedData(req, { locations: ['body'] });
+      // Render again so saved output comes from validated inputs, not client-submitted output text.
       const rendered = await this.generationService.renderFromTemplate(
         Number(payload.templateId),
         payload,
@@ -105,6 +119,7 @@ class ApiController {
     }
   }
 
+  /** Returns public template metadata for normalized browser filters. */
   async getTemplates(req, res, next) {
     try {
       const search = stringQuery(req.query.search);
@@ -118,6 +133,7 @@ class ApiController {
         onlyFavorites
       });
 
+      // Return a deliberately small DTO rather than leaking Sequelize records to the browser.
       return res.json(
         templates.map((template) => ({
           id: template.id,

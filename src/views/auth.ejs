@@ -1,6 +1,8 @@
+<%# Shared login/register view; all retained values and validation messages use escaped output. %>
 <section class="panel auth-panel">
   <h1><%= type === 'login' ? 'Login' : 'Create Account' %></h1>
   <form method="POST" action="/auth/<%= type === 'login' ? 'login' : 'register' %>">
+    <%# Form submissions use the synchronizer token stored in the current server-side session. %>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
     <label>Email<input class="input" type="email" name="email" value="<%= values.email || '' %>" required /></label>
     <label>Password<input class="input" type="password" name="password" required /></label>

@@ -1,5 +1,6 @@
 'use strict';
 
+/** Creates the original relational schema in foreign-key dependency order. */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Users', {
@@ -43,6 +44,7 @@ module.exports = {
       updatedAt: { allowNull: false, type: Sequelize.DATE }
     });
 
+    // A database constraint, not only application logic, prevents duplicate favorites.
     await queryInterface.addConstraint('Favorites', {
       fields: ['UserId', 'TemplateId'],
       type: 'unique',
@@ -61,6 +63,7 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: true,
         references: { model: 'Templates', key: 'id' },
+        // Saved copy remains readable when a catalog template is removed.
         onDelete: 'SET NULL'
       },
       subject: { type: Sequelize.TEXT, allowNull: false },
@@ -73,6 +76,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
+    // Reverse dependency order keeps foreign-key teardown valid.
     await queryInterface.dropTable('GenerationHistories');
     await queryInterface.dropTable('Favorites');
     await queryInterface.dropTable('Templates');

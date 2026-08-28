@@ -1,6 +1,8 @@
+/** Encapsulates Sequelize queries used to browse templates and favorites. */
 const { Op } = require('sequelize');
 
 class TemplateRepository {
+  /** @param {object} models - Template and Favorite Sequelize models. */
   constructor({ Template, Favorite }) {
     this.Template = Template;
     this.Favorite = Favorite;
@@ -10,10 +12,14 @@ class TemplateRepository {
     return this.Template.findByPk(id);
   }
 
+  /**
+   * Lists templates in stable display order, optionally filtered by category, name, or favorites.
+   */
   list({ category = '', search = '', userId, onlyFavorites = false } = {}) {
     const where = {};
     if (category) where.category = category;
     if (search) where.name = { [Op.like]: `%${search}%` };
+    // required switches the same join from decoration to a favorites-only filter.
     const include = userId
       ? [
           {

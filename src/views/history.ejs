@@ -1,3 +1,4 @@
+<%# Authenticated history view receives records already scoped to the current user. %>
 <section class="panel" data-page="history">
   <h1>Generation History</h1>
   <form method="GET" class="filter-row">
@@ -22,6 +23,7 @@
         <pre class="preview-text" data-history-body><%= entry.body %></pre>
         <div class="preview-actions">
           <button class="btn btn-secondary copy-history" type="button">Copy</button>
+          <%# Method override keeps deletion in a CSRF-protected HTML form workflow. %>
           <form action="/history/<%= entry.id %>?_method=DELETE" method="POST">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
             <button class="btn btn-danger" type="submit">Delete</button>
@@ -32,6 +34,7 @@
   </div>
 
   <% if (pagination.previousUrl || pagination.nextUrl) { %>
+    <%# URLs retain active search and ordering choices across page navigation. %>
     <nav class="history-pagination" aria-label="History pages">
       <% if (pagination.previousUrl) { %>
         <a class="btn btn-secondary" href="<%= pagination.previousUrl %>">Previous</a>

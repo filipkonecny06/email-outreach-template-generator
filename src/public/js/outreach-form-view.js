@@ -1,3 +1,4 @@
+/** Owns generator form state, contextual field visibility, and safe preview rendering. */
 class OutreachFormView {
   constructor({
     documentObject = globalThis.document,
@@ -35,6 +36,7 @@ class OutreachFormView {
     this.showError('');
   }
 
+  // DOM metadata drives the UI only; the server enforces its authoritative field requirements.
   parseFieldList(value) {
     try {
       const fields = JSON.parse(value || '[]');
@@ -51,6 +53,10 @@ class OutreachFormView {
     };
   }
 
+  /**
+   * Enables only inputs required by the current output choice.
+   * Disabled hidden fields are excluded from FormData and native constraint validation.
+   */
   updateRequiredFields(requirements = this.selectedRequirements) {
     this.selectedRequirements = Array.isArray(requirements)
       ? { requiredFields: requirements, followUpRequiredFields: [] }
@@ -80,6 +86,10 @@ class OutreachFormView {
     this.clearError();
   }
 
+  /**
+   * Highlights unresolved tokens using DOM nodes rather than interpolated HTML.
+   * This keeps generated or user-provided content out of the HTML parser.
+   */
   renderHighlightedText(element, value) {
     const text = String(value);
     const nodes = [];

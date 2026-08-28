@@ -2,6 +2,7 @@ services:
   db:
     image: mysql:8.4.11@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
     environment:
+      # Local-development defaults only; provide real secrets outside this Compose setup.
       MYSQL_DATABASE: outreach_generator
       MYSQL_USER: outreach
       MYSQL_PASSWORD: outreach
@@ -40,8 +41,10 @@ services:
     ports:
       - '3000:3000'
     depends_on:
+      # Migrations cannot start reliably until MySQL accepts connections.
       db:
         condition: service_healthy
+    # Local startup applies schema changes and the validated, version-controlled catalog.
     command: sh -c "npm run db:migrate && npm run catalog:sync && npm run dev"
 
 volumes:

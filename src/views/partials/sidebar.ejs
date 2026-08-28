@@ -1,3 +1,4 @@
+<%# Field metadata mirrors server policy for UI behavior; the server validates it independently. %>
 <aside class="panel template-panel" aria-label="Template Library">
   <div class="panel-head">
     <h2>Template Library</h2>
@@ -17,6 +18,7 @@
   <label class="label" for="templateSearch">Search</label>
   <input id="templateSearch" class="input" type="text" placeholder="Find template..." />
 
+  <%# listbox selection and favorite press state are updated by the browser controller. %>
   <ul id="templateList" class="template-list" role="listbox" aria-label="Template results">
     <% templates.forEach((template) => { %>
       <li class="template-row">

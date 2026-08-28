@@ -1,3 +1,4 @@
+/** Shared lint policy for Node.js modules and browser-delivered scripts. */
 const js = require('@eslint/js');
 const globals = require('globals');
 

@@ -1,8 +1,10 @@
+<%# Shared document shell; individual views supply only the main-page body. %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <%# Browser API clients read this session-bound token for mutating JSON requests. %>
   <meta name="csrf-token" content="<%= csrfToken %>" />
   <title><%= pageTitle %></title>
   <link rel="stylesheet" href="/css/styles.css" />
@@ -11,6 +13,7 @@
   <div class="bg-gradient" aria-hidden="true"></div>
   <%- include('partials/header') %>
   <main class="app-shell">
+    <%# body is rendered by this application's view engine, so the layout intentionally includes it raw. %>
     <%- body %>
   </main>
   <%- include('partials/toasts') %>

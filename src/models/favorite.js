@@ -1,3 +1,4 @@
+/** Defines the unique user-to-template favorite relationship. */
 const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
@@ -15,6 +16,7 @@ module.exports = (sequelize) => {
     },
     {
       tableName: 'Favorites',
+      // Database uniqueness prevents duplicate rows for one user-template pair.
       indexes: [{ unique: true, fields: ['UserId', 'TemplateId'] }]
     }
   );

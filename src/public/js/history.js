@@ -1,3 +1,4 @@
+/** Copies saved plain-text drafts while keeping listener setup and teardown testable. */
 class HistoryClipboardController {
   static collectElements(documentObject) {
     const page = documentObject?.querySelector('[data-page="history"]');

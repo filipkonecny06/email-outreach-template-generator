@@ -1,10 +1,15 @@
+/**
+ * Parses environment variables into the single validated runtime configuration contract.
+ */
 const VALID_ENVIRONMENTS = new Set(['development', 'test', 'production']);
 
+/** Converts an optional environment value to a bounded integer or NaN when invalid. */
 function integer(value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
   const parsed = value === undefined || value === '' ? fallback : Number(value);
   return Number.isInteger(parsed) && parsed >= min && parsed <= max ? parsed : Number.NaN;
 }
 
+/** Converts the supported environment spellings to a boolean without accepting ambiguous text. */
 function boolean(value, fallback) {
   if (value === undefined || value === '') return fallback;
   if (value === true || value === 'true' || value === '1') return true;
@@ -52,6 +57,13 @@ function invalidConfiguration(errors) {
   return error;
 }
 
+/**
+ * Loads only the database settings required by migrations and standalone database tools.
+ *
+ * @param {object} [options] - An optional environment map, primarily for tests.
+ * @returns {object} Validated database settings.
+ * @throws {Error} When a required value is missing or malformed.
+ */
 function loadValidatedDatabaseConfig({ env = process.env } = {}) {
   const database = parseDatabaseConfig(env);
   const errors = databaseConfigErrors(database);
@@ -59,6 +71,7 @@ function loadValidatedDatabaseConfig({ env = process.env } = {}) {
   return database;
 }
 
+/** Preserves Express's supported proxy modes while normalizing common environment values. */
 function parseTrustProxy(value) {
   if (value === undefined || value === '' || value === 'false') return false;
   if (value === 'true') return 1;
@@ -66,6 +79,14 @@ function parseTrustProxy(value) {
   return value;
 }
 
+/**
+ * Loads HTTP process configuration and validates the required settings with defined constraints.
+ * Validation is eager so malformed required values fail before request handling starts.
+ *
+ * @param {object} [options] - An optional environment map, primarily for tests.
+ * @returns {Readonly<object>} Validated top-level application configuration.
+ * @throws {Error} When one or more required settings fail validation.
+ */
 function loadConfig({ env = process.env } = {}) {
   const nodeEnv = env.NODE_ENV || 'development';
   const config = {
@@ -118,6 +139,7 @@ function loadConfig({ env = process.env } = {}) {
     throw invalidConfiguration(errors);
   }
 
+  // Freezing the top-level object prevents accidental runtime replacement of configuration groups.
   return Object.freeze(config);
 }
 

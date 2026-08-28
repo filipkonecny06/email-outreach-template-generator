@@ -1,3 +1,4 @@
+/** Manages the site's self-expiring toast messages. */
 class ToastController {
   static mount(options = {}) {
     const windowObject = options.windowObject || globalThis.window;
@@ -28,6 +29,7 @@ class ToastController {
     const variant = ['info', 'success', 'warning', 'error'].includes(type) ? type : 'info';
     const element = this.document.createElement('div');
     element.className = `toast ${variant}`;
+    // textContent keeps server and validation messages out of the HTML parser.
     element.textContent = String(message ?? '');
     this.region.appendChild(element);
 

@@ -1,4 +1,6 @@
+/** Coordinates generator form, template list, API transport, previews, and exports. */
 const outreachBrowserDependencies = (() => {
+  // The same source runs in browsers and Node.js tests; dependencies are resolved at one boundary.
   if (typeof module !== 'undefined' && module.exports) {
     return {
       ...require('./outreach-api-client'),
@@ -11,6 +13,7 @@ const outreachBrowserDependencies = (() => {
 })();
 
 class OutreachGeneratorController {
+  /** Collects the generator page contract, or null when mounted on another page. */
   static collectElements(documentObject) {
     const page = documentObject?.querySelector('[data-page="generator"]');
     if (!page) return null;
@@ -48,6 +51,7 @@ class OutreachGeneratorController {
     return new OutreachGeneratorController({ ...options, documentObject, elements }).init();
   }
 
+  /** @param {object} [options] - Browser primitives and replaceable collaborators for testing. */
   constructor(options = {}) {
     this.document = options.documentObject || globalThis.document;
     this.window = options.windowObject || globalThis.window;
@@ -148,6 +152,7 @@ class OutreachGeneratorController {
     return this;
   }
 
+  /** Removes listeners and timers, then signals in-flight browser fetches to abort. */
   destroy() {
     for (const removeListener of this.listeners.splice(0)) removeListener();
     this.debouncedPreview.cancel();
@@ -162,6 +167,7 @@ class OutreachGeneratorController {
     this.listeners.push(() => element.removeEventListener(eventName, handler));
   }
 
+  /** Returns a cancellable trailing-edge debounce function using the injected clock. */
   debounce(callback, delay) {
     let timerId;
     const debounced = (...args) => {
@@ -175,6 +181,11 @@ class OutreachGeneratorController {
     return debounced;
   }
 
+  /**
+   * Fetches the latest valid preview and ignores any response superseded by newer input.
+   * Aborting stops client-side fetch handling, not necessarily work already running on the server.
+   * Controller identity protects the UI from late-resolution races.
+   */
   async fetchPreview({ reportValidity = false } = {}) {
     this.previewController?.abort();
     this.previewController = null;
@@ -211,6 +222,7 @@ class OutreachGeneratorController {
     void this.fetchPreview({ reportValidity: true });
   }
 
+  /** Saves one validated generation and prevents duplicate writes while it is pending. */
   async saveHistory() {
     const { saveHistoryButton } = this.elements;
     if (

@@ -1,3 +1,4 @@
+<%# Authenticated workspace composed from a template list, contextual form, and live preview. %>
 <section class="generator-grid" data-page="generator" aria-busy="false">
   <%- include('partials/sidebar') %>
 
@@ -5,6 +6,7 @@
     <h1>Build an outreach email</h1>
     <p class="muted">Choose a campaign pattern, add only the details it needs, then review the plain-text output before sending.</p>
     <h2>Campaign Inputs</h2>
+    <%# Server-side field state matches the browser controller before JavaScript initializes. %>
     <% const activeFields = new Set(selectedTemplate ? selectedTemplate.requiredFields : []); %>
     <form id="generatorForm">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
@@ -40,6 +42,7 @@
 
       <label class="checkbox-row"><input type="checkbox" name="includeFollowUps" id="includeFollowUps" /> Include follow-up sequence</label>
       <button type="submit" class="btn">Generate Preview</button>
+      <%# The live region announces validation and transport failures without moving focus. %>
       <p id="formError" class="form-error" role="alert" aria-live="assertive"></p>
     </form>
   </section>
@@ -65,6 +68,7 @@
     </div>
   </section>
 </section>
+<%# Dependencies are loaded before the small bootstrap file; defer preserves declaration order. %>
 <script src="/js/outreach-api-client.js" defer></script>
 <script src="/js/outreach-form-view.js" defer></script>
 <script src="/js/outreach-template-list-controller.js" defer></script>

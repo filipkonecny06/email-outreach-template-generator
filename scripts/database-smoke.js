@@ -1,3 +1,4 @@
+/** Verifies migrated schema invariants, session storage, and catalog synchronization. */
 require('dotenv').config({ quiet: true });
 
 const { Op } = require('sequelize');
@@ -6,6 +7,7 @@ const HISTORY_PAGINATION_INDEX = 'generation_history_user_created_id';
 const HISTORY_PAGINATION_COLUMNS = Object.freeze(['UserId', 'createdAt', 'id']);
 const SCHEMA_MODES = new Set(['current', 'legacy']);
 
+/** Parses the expected migration state used by forward and rollback CI checks. */
 function parseSchemaMode(args = process.argv.slice(2)) {
   if (args.length === 0) return 'current';
   const match = args.length === 1 ? args[0].match(/^--schema=(current|legacy)$/) : null;
@@ -15,15 +17,18 @@ function parseSchemaMode(args = process.argv.slice(2)) {
   return match[1];
 }
 
+/** Normalizes Sequelize's dialect-specific index field representation. */
 function indexColumns(index) {
   return (index.fields || []).map((field) =>
     typeof field === 'string' ? field : field.attribute || field.name
   );
 }
 
+/** Verifies history-column and pagination-index invariants for one migration state. */
 async function verifyHistorySchema(queryInterface, schemaMode) {
   if (!SCHEMA_MODES.has(schemaMode)) throw new Error(`Unknown history schema mode: ${schemaMode}`);
 
+  // These metadata reads are independent and safe to issue concurrently.
   const [columns, indexes] = await Promise.all([
     queryInterface.describeTable('GenerationHistories'),
     queryInterface.showIndex('GenerationHistories')
@@ -51,6 +56,10 @@ async function verifyHistorySchema(queryInterface, schemaMode) {
   }
 }
 
+/**
+ * Connects to real infrastructure and verifies the application-visible database contract.
+ * Resources are closed in finally so a failed assertion cannot leave CI hanging.
+ */
 async function verifyDatabase({ schemaMode }) {
   if (!SCHEMA_MODES.has(schemaMode)) throw new Error(`Unknown history schema mode: ${schemaMode}`);
 
