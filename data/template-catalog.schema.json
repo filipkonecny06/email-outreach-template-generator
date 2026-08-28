@@ -53,7 +53,6 @@
             "enum": [
               "firstName",
               "siteName",
-              "siteUrl",
               "topic",
               "articleUrl",
               "brokenUrl",

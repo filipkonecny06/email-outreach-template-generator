@@ -1,106 +1,152 @@
-# OutreachOps — deterministic outreach-email workshop
+# OutreachOps
 
-OutreachOps is a portfolio project for creating clear, reviewable outreach drafts from a version-controlled template catalog. It deliberately does **not** claim that a message will convert or that it replaces editorial judgment. The goal is to show secure server-rendered product engineering, catalog operations, and transparent deterministic generation.
+[![CI](https://github.com/filipkonecny06/email-outreach-template-generator/actions/workflows/ci.yml/badge.svg)](https://github.com/filipkonecny06/email-outreach-template-generator/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0f766e.svg)](LICENSE)
 
-## What makes it interesting
+OutreachOps is a server-rendered workspace for drafting and organizing outreach emails. It combines a version-controlled template catalog with authenticated favorites, history, export tools, and a MySQL-backed operational workflow.
 
-- 18 distinct campaign patterns across guest posts, broken links, attribution, research, podcast, partnership, creator, and PR work.
-- Tone and length alter the generated copy through explicit, inspectable rules—not an opaque model call.
-- The catalog lives in `data/template-catalog.json`, is schema-validated, and can be safely listed, checked, or synchronized into MySQL.
-- Server-side rendering prevents a client from forging saved generation content. Plain-text output is escaped only at the browser boundary, so copy, CSV, downloads, and history do not contain HTML entities.
-- MySQL-backed sessions, session rotation after authentication, synchronizer-token CSRF protection, input limits, rate limits, CSP, structured JSON logging, and request IDs are built in.
+## Capabilities
+
+- 24 campaign patterns covering guest posts, broken links, attribution, research, podcasts, partnerships, creator outreach, and PR.
+- Template-specific input fields driven by catalog metadata, with authoritative validation on the server.
+- Direct, friendly, and formal tone options plus short, medium, and long output profiles.
+- Optional two-step follow-up sequences; inputs used only by follow-ups stay optional until the sequence is enabled.
+- Authenticated favorites and generation history.
+- Plain-text copy, TXT download, and spreadsheet-safe CSV export.
+- Schema validation, dry-run catalog synchronization, migrations, and database smoke checks.
 
 ## Architecture
 
 ```text
-JSON catalog ──> TemplateCatalogService ──> MySQL Templates
-                         │
-Browser ─> Express routes/controllers ─> TemplateGenerationService ─> OutreachTemplateRenderer
-                         │                                            │
-                         └── session + CSRF + validation               └── plain-text draft + follow-ups
+data/template-catalog.json
+        |
+        v
+TemplateCatalogRepository -> TemplateCatalogService -> MySQL Templates
+                                                        |
+Browser -> Express routes -> controllers -> TemplateGenerationService
+                                         -> TemplateRepository
+                                                        |
+                                                        v
+                                             plain-text draft/history
 ```
 
-Named classes express stable boundaries:
+The main boundaries are named and independently testable:
 
-- `TemplateCatalogRepository` owns on-disk catalog access.
-- `TemplateCatalogService` validates, converts, and synchronizes editable catalog entries.
-- `TemplateRepository` isolates Sequelize querying.
-- `TemplateGenerationService` validates selected-template requirements and derives output on the server.
-- `OutreachTemplateRenderer` renders tone/length profiles without coupling domain text to HTML.
+- `TemplateCatalogRepository` reads the on-disk catalog.
+- `TemplateCatalogService` validates catalog structure and synchronizes catalog-owned records.
+- `TemplateRepository` contains template and favorite queries used by browsing and generation.
+- `TemplateBrowserController` prepares server-rendered template pages.
+- `ApiController` owns the JSON API contract.
+- `TemplateGenerationService` enforces the selected template's required fields before rendering.
+- `OutreachTemplateRenderer` applies the catalog content, tone, length, and follow-up rules.
+- `OutreachGeneratorController` coordinates the generator page lifecycle and delegates browser work.
+- `OutreachApiClient` owns browser request construction and API error parsing.
+- `OutreachFormView` owns field visibility, form serialization, and safe preview rendering.
+- `OutreachTemplateListController` owns template filtering, selection, and favorite actions.
+- `OutreachExportService` owns clipboard, text download, and spreadsheet-safe CSV export.
 
-Small transformations remain functions rather than becoming ceremonial classes.
+## Requirements
 
-## Quick start
+- Node.js 22.13 or later in the 22.x line, or Node.js 24.x
+- npm
+- MySQL 8.4+
 
-Requires Node 22+ and MySQL 8+, or Docker Desktop.
+Docker Compose can provide the local database and application runtime instead.
+
+## Local setup
+
+Install dependencies and create a local environment file:
 
 ```bash
 npm ci
+cp .env.example .env
+```
+
+PowerShell equivalent:
+
+```powershell
+npm.cmd ci
 Copy-Item .env.example .env
-npm run catalog:validate
+```
+
+Replace `SESSION_SECRET` in `.env` with a unique value. One way to generate it is:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
+```
+
+Create the configured MySQL database and user, then initialize and start the application:
+
+```bash
 npm run db:setup
 npm run dev
 ```
 
 Open `http://localhost:3000`.
 
-For a local disposable stack:
+For a disposable local stack:
 
 ```bash
 docker compose up --build
 ```
 
-The Compose credentials are only for local development. Use a unique `SESSION_SECRET`, managed database credentials, HTTPS, and a trusted-proxy policy in every deployed environment.
+The credentials in `docker-compose.yml` are development-only.
 
-## Manual catalog management
+## Catalog operations
 
-The source of truth is `data/template-catalog.json`. Each entry has a stable `key`, its required fields, content blocks, and two follow-ups. Edit that file, then use:
-
-```bash
-npm run catalog:validate       # schema + semantic validation
-npm run catalog:list           # inspect catalog entries
-npm run catalog:sync:dry-run   # report creates/updates without writing
-npm run catalog:sync           # apply idempotent creates/updates to MySQL
-```
-
-The seeder only affects catalog-keyed rows; it does not delete manually created templates during rollback.
-
-## Quality gates
+`data/template-catalog.json` is the source of truth for catalog-owned templates. Every entry has a stable key, required input fields, content blocks, and follow-up definitions. The application derives follow-up-only requirements from where each declared field is used, avoiding a second metadata list that could drift from the template text.
 
 ```bash
-npm run check
-npm audit --omit=dev --audit-level=high
+npm run catalog:validate       # validate schema and cross-field rules
+npm run catalog:list           # list catalog entries
+npm run catalog:sync:dry-run   # preview database changes
+npm run catalog:sync           # transactionally reconcile catalog-owned rows
 ```
 
-`npm run check` runs formatting, linting, and a Node test suite with coverage thresholds on the core catalog, environment, renderer, and generation services. GitHub Actions runs these checks, catalog validation, and the high-severity production audit on every pull request.
+The dry run reports creates, updates, unchanged records, and stale catalog keys without writing. Apply mode deletes stale catalog-owned rows inside the same transaction; manually created rows have no catalog key and are never included.
 
-## Security model and trade-offs
-
-- State-changing requests require a synchronizer CSRF token stored in the server-side session.
-- Login and registration rotate the session identifier to reduce session-fixation exposure.
-- Passwords are bcrypt-hashed; validation caps their byte-safe length.
-- The app has generic public errors and structured server-side logs. Runtime logs are written to stdout, not committed files.
-- Catalog content is operational data, not user input. User-provided values remain plain text and EJS escapes them at output boundaries.
-- The app uses Sequelize 6 because it keeps the codebase approachable for the portfolio scope. The lockfile is audited in CI at high severity; revisit the ORM migration when a stable supported major version fits the deployment target.
-
-## Useful operations
+## Database and session operations
 
 ```bash
 npm run db:migrate
 npm run db:migrate:undo
-npm run db:seed
-npm run db:seed:undo
-curl http://localhost:3000/healthz
+npm run db:smoke
 ```
 
-Back up MySQL before migrations in a real environment, run migrations as a release step, and monitor the liveness endpoint plus application logs. The `/healthz` endpoint is a liveness check; the server only starts after it can authenticate to MySQL.
+The application and MySQL session store share the same TLS configuration:
 
-## Limitations
+- `DB_SSL=true` enables TLS.
+- `DB_SSL_REJECT_UNAUTHORIZED=true` verifies the database certificate and is the safe default.
+- `DB_SSL_CA` accepts a certificate authority value with line breaks encoded as `\n`.
 
-- The generator drafts text; users must verify facts, linking policies, tone, consent, and anti-spam compliance before sending.
-- It does not send emails, scrape websites, or make claims about deliverability or conversion.
-- The included Docker Compose stack is developer tooling, not a production deployment blueprint.
+Back up production data before migrations. Run `db:setup` as a release step, not concurrently in every application replica. The Dockerfile provides separate `migration` and `production` targets for that workflow.
+
+Migration `20260828000100-remove-generation-history-soft-delete` permanently purges rows that were already soft-deleted before removing the legacy column. Its rollback restores the column only; it cannot restore purged content. The database smoke command defaults to the current schema; pass `-- --schema=legacy` when deliberately checking the rolled-back state. Current mode requires the hard-delete schema and the ordered `(UserId, createdAt, id)` pagination index; legacy mode requires `deletedAt` and rejects that index. CI checks current, rolls back both new migrations, checks legacy, and then reapplies and checks current again. No rollback can recover rows purged by the original `up` migration.
+
+## Quality checks
+
+```bash
+npm run catalog:validate
+npm run check
+npm run audit:production
+```
+
+`npm run check` runs formatting, linting, and the Node test suite with whole-source coverage thresholds, including browser-side behavior. The authentication controller has an explicit per-file floor of 90% lines, 90% functions, and 75% branches. The browser orchestration controller requires 85% lines, 90% functions, and 65% branches. Its API, form, template-list, and export collaborators each require at least 90% lines, 95% functions, and 85% branches, with 100% function floors for the API and export classes. The smaller toast and history clipboard controllers require 85% lines, 90% functions, and 70% branches. The process entry point, database bootstrap modules, the generator's nine-line browser bootstrap, EJS templates, and migrations are verified by linting, rendering assertions, catalog checks, Docker builds, and the MySQL migration job rather than Node's coverage instrumentation. CI runs the quality suite on Node 22 and 24, builds both Docker targets, exercises migrations plus catalog synchronization against MySQL 8.4, and starts the production image for a bounded liveness probe.
+
+## Security and runtime behavior
+
+- State-changing requests require a synchronizer token tied to the server-side session. Browser API mutations send it in the `X-CSRF-Token` header; server-rendered forms use the `_csrf` field.
+- Authentication rotates the session identifier.
+- Password validation rejects values beyond bcrypt's 72-byte UTF-8 input limit.
+- Deleting a saved history entry permanently removes the owned database row.
+- Request bodies, rate limits, secure headers, and content security policy are configured centrally.
+- Session-aware HTML and JSON responses use `Cache-Control: no-store`; stable public asset filenames use ETag revalidation with `max-age=0`, and the stateless liveness response bypasses session state.
+- Expected 4xx responses use a consistent API error envelope and concise warning logs; unexpected failures retain server-side stack traces.
+- `/healthz` is a dependency-free, `no-store` liveness endpoint and does not create a session.
+- Startup waits for both the application database and session store. Shutdown stops accepting traffic and closes both pools within a bounded window.
+
+The application drafts text only. Review recipients, claims, links, consent, and applicable messaging rules before using any output. It does not send email or collect website data.
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE)

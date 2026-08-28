@@ -2,13 +2,31 @@ const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
 const { User } = require('../models');
 
-function renderAuthPage(req, res, type, errors = [], values = {}) {
-  res.status(200).render('auth', {
+const INVALID_PASSWORD_HASH = '$2b$12$jbQxnq8l5trJLrlr4HGWbuf/tZx1nxIiVSxG6vNZj9bIm0LT/0pV6';
+
+function retainedAuthValues(values = {}) {
+  const email = typeof values.email === 'string' ? values.email.trim().slice(0, 254) : '';
+  return email ? { email } : {};
+}
+
+function renderAuthPage(_req, res, type, errors = [], values = {}, status = 200) {
+  return res.status(status).render('auth', {
     pageTitle: type === 'login' ? 'Login' : 'Register',
     type,
     errors,
-    values
+    values: retainedAuthValues(values)
   });
+}
+
+function renderDuplicateEmail(req, res) {
+  return renderAuthPage(
+    req,
+    res,
+    'register',
+    [{ msg: 'Email is already in use.', path: 'email' }],
+    req.body,
+    409
+  );
 }
 
 function establishSession(req, user) {
@@ -28,20 +46,12 @@ exports.postRegister = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return renderAuthPage(req, res, 'register', errors.array(), req.body);
+      return renderAuthPage(req, res, 'register', errors.array(), req.body, 422);
     }
 
     const { email, password } = req.body;
     const existing = await User.findOne({ where: { email } });
-    if (existing) {
-      return renderAuthPage(
-        req,
-        res,
-        'register',
-        [{ msg: 'Email is already in use.', path: 'email' }],
-        req.body
-      );
-    }
+    if (existing) return renderDuplicateEmail(req, res);
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({ email, passwordHash });
@@ -49,6 +59,9 @@ exports.postRegister = async (req, res, next) => {
     await establishSession(req, user);
     return res.redirect('/generator');
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return renderDuplicateEmail(req, res);
+    }
     return next(error);
   }
 };
@@ -57,29 +70,20 @@ exports.postLogin = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return renderAuthPage(req, res, 'login', errors.array(), req.body);
+      return renderAuthPage(req, res, 'login', errors.array(), req.body, 422);
     }
 
     const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
+    const user = await User.scope('withPassword').findOne({ where: { email } });
+    const isValid = await bcrypt.compare(password, user?.passwordHash || INVALID_PASSWORD_HASH);
+    if (!user || !isValid) {
       return renderAuthPage(
         req,
         res,
         'login',
         [{ msg: 'Invalid credentials.', path: 'email' }],
-        req.body
-      );
-    }
-
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isValid) {
-      return renderAuthPage(
-        req,
-        res,
-        'login',
-        [{ msg: 'Invalid credentials.', path: 'password' }],
-        req.body
+        req.body,
+        401
       );
     }
 
@@ -99,3 +103,6 @@ exports.logout = (req, res, next) => {
 };
 
 exports.establishSession = establishSession;
+exports.renderAuthPage = renderAuthPage;
+exports.renderDuplicateEmail = renderDuplicateEmail;
+exports.retainedAuthValues = retainedAuthValues;

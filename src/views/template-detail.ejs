@@ -5,6 +5,10 @@
   <div class="preview-block">
     <h2>Required Variables</h2>
     <p><%= template.requiredFields.join(', ') %></p>
+    <% if (template.followUpRequiredFields.length) { %>
+      <h3>Also required for follow-ups</h3>
+      <p><%= template.followUpRequiredFields.join(', ') %></p>
+    <% } %>
   </div>
 
   <div class="preview-block">

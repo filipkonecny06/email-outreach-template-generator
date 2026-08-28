@@ -1,7 +1,9 @@
 {
   "name": "outreach-email-template-generator",
   "version": "2.0.0",
-  "description": "A secure, deterministic outreach-email workshop with a version-controlled template catalog",
+  "description": "A secure outreach-email workspace backed by a version-controlled template catalog",
+  "private": true,
+  "packageManager": "npm@11.13.0",
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
@@ -10,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "node --test",
-    "test:coverage": "c8 --include=src/services/** --include=src/config/environment.js --check-coverage --lines 80 --functions 80 --branches 70 node --test",
+    "audit:production": "npm audit --omit=dev --audit-level=moderate",
+    "test:coverage": "c8 --all --include=src/**/*.js --exclude=src/server.js --exclude=src/config/database.js --exclude=src/config/sequelize-cli.js --exclude=src/public/js/generator.js --reporter=text --reporter=json-summary --check-coverage --lines 80 --functions 70 --branches 70 node --test && node scripts/check-file-coverage.js",
     "check": "npm run format:check && npm run lint && npm run test:coverage",
     "catalog:validate": "node scripts/catalog.js validate",
     "catalog:list": "node scripts/catalog.js list",
@@ -18,9 +21,8 @@
     "catalog:sync": "node scripts/catalog.js sync --apply",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
-    "db:seed": "sequelize-cli db:seed:all",
-    "db:seed:undo": "sequelize-cli db:seed:undo:all",
-    "db:setup": "npm run db:migrate && npm run catalog:sync"
+    "db:setup": "npm run db:migrate && npm run catalog:sync",
+    "db:smoke": "node scripts/database-smoke.js"
   },
   "keywords": [
     "outreach",
@@ -40,34 +42,37 @@
   },
   "homepage": "https://github.com/filipkonecny06/email-outreach-template-generator#readme",
   "engines": {
-    "node": ">=22.0.0"
+    "node": "^22.13.0 || ^24.0.0"
   },
   "dependencies": {
     "ajv": "^8.17.1",
     "bcrypt": "^6.0.0",
     "csrf-sync": "^4.2.1",
     "dotenv": "^17.2.2",
-    "ejs": "^3.1.10",
+    "ejs": "^6.0.1",
     "express": "^5.2.1",
     "express-ejs-layouts": "^2.5.1",
     "express-mysql-session": "^3.0.3",
     "express-rate-limit": "^8.2.1",
     "express-session": "^1.19.0",
-    "express-validator": "^7.2.1",
-    "helmet": "^8.1.0",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
     "method-override": "^3.0.0",
     "morgan": "^1.11.0",
-    "mysql2": "^3.17.1",
+    "mysql2": "^3.24.2",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "c8": "^10.1.3",
-    "eslint": "^9.39.1",
-    "globals": "^16.5.0",
-    "nodemon": "^3.1.10",
+    "@eslint/js": "^10.0.1",
+    "c8": "^12.0.0",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
+    "nodemon": "^3.1.14",
     "prettier": "^3.7.4",
     "sequelize-cli": "^6.6.5",
     "supertest": "^7.2.2"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

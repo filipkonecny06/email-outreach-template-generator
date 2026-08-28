@@ -8,16 +8,165 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 22
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
       - run: npm run catalog:validate
       - run: npm run check
-      - run: npm audit --omit=dev --audit-level=high
+      - if: matrix.node-version == 24
+        run: npm run audit:production
+
+  container-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.4.11@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
+        env:
+          MYSQL_DATABASE: outreach_generator
+          MYSQL_USER: outreach
+          MYSQL_PASSWORD: outreach
+          MYSQL_ROOT_PASSWORD: local-root-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -plocal-root-password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      NODE_ENV: production
+      SESSION_SECRET: ci-container-runtime-secret-9f7c2a6e4d8b1a35
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: outreach_generator
+      DB_USER: outreach
+      DB_PASSWORD: outreach
+      DB_SSL: 'false'
+      PORT: 3101
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker build --target production --tag outreach-ops:test .
+      - run: docker build --target migration --tag outreach-ops-migration:test .
+      - name: Apply migrations and synchronize the catalog from the migration image
+        run: >-
+          docker run --rm --network host
+          --env NODE_ENV
+          --env SESSION_SECRET
+          --env DB_HOST
+          --env DB_PORT
+          --env DB_NAME
+          --env DB_USER
+          --env DB_PASSWORD
+          --env DB_SSL
+          outreach-ops-migration:test
+      - name: Start the production image and probe its liveness endpoint
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          container_name=outreach-ops-runtime-smoke
+          cleanup() {
+            status=$?
+            trap - EXIT
+            if (( status != 0 )); then
+              echo 'Production container logs:'
+              docker logs "$container_name" || true
+            fi
+            docker rm --force "$container_name" >/dev/null 2>&1 || true
+            exit "$status"
+          }
+          trap cleanup EXIT
+
+          docker run --detach --init --name "$container_name" --network host \
+            --env NODE_ENV \
+            --env SESSION_SECRET \
+            --env DB_HOST \
+            --env DB_PORT \
+            --env DB_NAME \
+            --env DB_USER \
+            --env DB_PASSWORD \
+            --env DB_SSL \
+            --env PORT \
+            outreach-ops:test
+
+          healthy=false
+          for _attempt in {1..30}; do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:3101/healthz >/dev/null; then
+              healthy=true
+              break
+            fi
+            if [[ "$(docker inspect --format '{{.State.Running}}' "$container_name")" != 'true' ]]; then
+              break
+            fi
+            sleep 1
+          done
+
+          if [[ "$healthy" != 'true' ]]; then
+            echo 'Production container did not become healthy within 30 attempts.' >&2
+            exit 1
+          fi
+
+  mysql-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.4.11@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
+        env:
+          MYSQL_DATABASE: outreach_generator
+          MYSQL_USER: outreach
+          MYSQL_PASSWORD: outreach
+          MYSQL_ROOT_PASSWORD: local-root-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -plocal-root-password"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    env:
+      NODE_ENV: test
+      SESSION_SECRET: ci-session-secret-with-at-least-forty-eight-characters
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: outreach_generator
+      DB_USER: outreach
+      DB_PASSWORD: outreach
+      DB_SSL: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:setup
+      - run: npm run db:smoke -- --schema=current
+      - run: npm run db:migrate:undo
+      - run: npm run db:migrate:undo
+      - run: npm run db:smoke -- --schema=legacy
+      - run: npm run db:migrate
+      - run: npm run db:smoke -- --schema=current

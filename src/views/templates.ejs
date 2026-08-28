@@ -17,6 +17,9 @@
         <h2><%= template.name %></h2>
         <p class="muted"><%= template.category %></p>
         <p>Required: <%= template.requiredFields.join(', ') %></p>
+        <% if (template.followUpRequiredFields.length) { %>
+          <p>Also required for follow-ups: <%= template.followUpRequiredFields.join(', ') %></p>
+        <% } %>
         <div class="preview-actions">
           <a class="btn btn-secondary" href="/templates/<%= template.id %>">View details</a>
           <a class="btn" href="/generator?templateId=<%= template.id %>">Use this template</a>

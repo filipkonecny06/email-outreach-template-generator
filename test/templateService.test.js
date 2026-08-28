@@ -1,6 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
+process.env.DB_HOST = '127.0.0.1';
+process.env.DB_NAME = 'outreach_test';
+process.env.DB_USER = 'outreach';
+
 const { TemplateCatalogRepository } = require('../src/repositories/templateCatalogRepository');
 const { TemplateCatalogService } = require('../src/services/templateCatalogService');
 const { TemplateGenerationService } = require('../src/services/templateService');
@@ -40,7 +44,7 @@ test('generation service validates the selected template fields and derives outp
 
   await assert.rejects(
     service.renderFromTemplate(7, { tone: 'friendly', length: 'medium' }),
-    (error) => error.code === 'VALIDATION_ERROR' && error.details.fields.length > 0
+    (error) => error.code === 'VALIDATION_ERROR' && error.details.length > 0
   );
 
   const result = await service.renderFromTemplate(7, validPayload(), true);
@@ -61,4 +65,34 @@ test('generation service returns a not-found error and exposes favorite state fo
   );
   const templates = await service.getTemplates({ userId: 42 });
   assert.equal(templates[0].isFavorite, true);
+});
+
+test('follow-up-only fields are required only when follow-ups are requested', async () => {
+  const template = new TemplateCatalogService({
+    repository: new TemplateCatalogRepository()
+  })
+    .loadAndValidate()
+    .templates.find((entry) => entry.key === 'guest-post-counterpoint');
+  const service = new TemplateGenerationService({ templateRepository: makeRepository(template) });
+  const payload = validPayload();
+  delete payload.siteName;
+
+  const withoutFollowUps = await service.renderFromTemplate(7, payload, false);
+  assert.equal(withoutFollowUps.followUps, undefined);
+
+  await assert.rejects(service.renderFromTemplate(7, payload, true), (error) => {
+    assert.equal(error.code, 'VALIDATION_ERROR');
+    assert.deepEqual(
+      error.details.map((detail) => detail.field),
+      ['siteName']
+    );
+    return true;
+  });
+
+  const withFollowUps = await service.renderFromTemplate(
+    7,
+    { ...payload, siteName: 'Example Journal' },
+    true
+  );
+  assert.equal(withFollowUps.followUps.length, 2);
 });
