@@ -8,6 +8,7 @@ process.env.DB_USER = 'outreach';
 const bcrypt = require('bcrypt');
 const { loginValidation, registerValidation } = require('../src/middleware/validation');
 const authController = require('../src/controllers/authController');
+const demoAccount = require('../src/config/demoAccount');
 const { User } = require('../src/models');
 
 function responseRecorder() {
@@ -40,6 +41,17 @@ function responseRecorder() {
 async function runRules(rules, req) {
   await Promise.all(rules.map((rule) => rule.run(req)));
 }
+
+test('login exposes the documented demo account while registration does not', () => {
+  const loginResponse = responseRecorder();
+  const registerResponse = responseRecorder();
+
+  authController.showLogin({}, loginResponse);
+  authController.showRegister({}, registerResponse);
+
+  assert.equal(loginResponse.locals.demoAccount, demoAccount);
+  assert.equal(registerResponse.locals.demoAccount, null);
+});
 
 test('invalid authentication input returns 422 and never retains the password', async () => {
   const req = {

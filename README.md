@@ -84,6 +84,18 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+The database setup also provisions an ordinary, non-admin portfolio demo account through the
+same user model and password hashing used by registration:
+
+```text
+Email: demo@example.com
+Password: OutreachOps-Portfolio-2026!
+```
+
+These credentials are intentionally public and appear on the login page. The account is shared,
+so never store sensitive or personal information in it. Re-running `npm run db:setup` safely
+restores the documented password if the database record has drifted.
+
 For a disposable local stack:
 
 ```bash

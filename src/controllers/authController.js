@@ -1,6 +1,7 @@
 /** Handles credential validation and the authenticated session lifecycle. */
 const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
+const demoAccount = require('../config/demoAccount');
 const { User } = require('../models');
 
 // Comparing against a real bcrypt hash keeps unknown-email logins on the expensive code path.
@@ -18,7 +19,8 @@ function renderAuthPage(_req, res, type, errors = [], values = {}, status = 200)
     pageTitle: type === 'login' ? 'Login' : 'Register',
     type,
     errors,
-    values: retainedAuthValues(values)
+    values: retainedAuthValues(values),
+    demoAccount: type === 'login' ? demoAccount : null
   });
 }
 

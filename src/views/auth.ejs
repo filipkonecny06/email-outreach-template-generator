@@ -1,6 +1,17 @@
 <%# Shared login/register view; all retained values and validation messages use escaped output. %>
 <section class="panel auth-panel">
   <h1><%= type === 'login' ? 'Login' : 'Create Account' %></h1>
+  <% if (demoAccount) { %>
+    <aside class="demo-credentials" aria-labelledby="demo-credentials-title">
+      <h2 id="demo-credentials-title">Portfolio demo account</h2>
+      <p>Use this ordinary, shared account to review the full workspace.</p>
+      <dl>
+        <div><dt>Email</dt><dd><code><%= demoAccount.email %></code></dd></div>
+        <div><dt>Password</dt><dd><code><%= demoAccount.password %></code></dd></div>
+      </dl>
+      <p class="muted">Public demo: do not enter sensitive or personal information.</p>
+    </aside>
+  <% } %>
   <form method="POST" action="/auth/<%= type === 'login' ? 'login' : 'register' %>">
     <%# Form submissions use the synchronizer token stored in the current server-side session. %>
     <input type="hidden" name="_csrf" value="<%= csrfToken %>" />

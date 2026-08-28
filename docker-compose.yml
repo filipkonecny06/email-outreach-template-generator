@@ -45,7 +45,7 @@ services:
       db:
         condition: service_healthy
     # Local startup applies schema changes and the validated, version-controlled catalog.
-    command: sh -c "npm run db:migrate && npm run catalog:sync && npm run dev"
+    command: sh -c "npm run db:setup && npm run dev"
 
 volumes:
   mysql-data:

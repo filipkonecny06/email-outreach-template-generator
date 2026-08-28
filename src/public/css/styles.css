@@ -383,6 +383,43 @@ body {
   display: grid;
   gap: 0.8rem;
 }
+.demo-credentials {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid rgba(57, 213, 255, 0.35);
+  border-radius: 12px;
+  background: rgba(57, 213, 255, 0.06);
+}
+.demo-credentials h2,
+.demo-credentials p,
+.demo-credentials dl {
+  margin: 0;
+}
+.demo-credentials h2 {
+  font-size: 1rem;
+}
+.demo-credentials dl {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.75rem 0;
+}
+.demo-credentials dl div {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.demo-credentials dt {
+  color: var(--muted);
+}
+.demo-credentials dd {
+  min-width: 0;
+  margin: 0;
+}
+.demo-credentials code {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  user-select: all;
+}
 .error-list {
   color: var(--danger);
   margin: 0;

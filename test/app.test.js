@@ -271,6 +271,21 @@ test('landing markup contains no inline script blocked by the application CSP', 
   assert.doesNotMatch(response.text, /<script(?![^>]+\bsrc=)[^>]*>/i);
 });
 
+test('login page visibly documents the public portfolio credentials', async () => {
+  const app = createApp({
+    config: testConfig(),
+    sessionStore: new session.MemoryStore(),
+    appLogger: silentLogger
+  });
+  const response = await request(app).get('/auth/login');
+
+  assert.equal(response.status, 200);
+  assert.match(response.text, /Portfolio demo account/);
+  assert.match(response.text, /demo@example\.com/);
+  assert.match(response.text, /OutreachOps-Portfolio-2026!/);
+  assert.match(response.text, /ordinary, shared account/);
+});
+
 test('static assets revalidate and bypass quotas while credential submissions use a stricter limit', async () => {
   const config = testConfig();
   config.rateLimit.authMax = 1;

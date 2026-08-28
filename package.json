@@ -19,9 +19,10 @@
     "catalog:list": "node scripts/catalog.js list",
     "catalog:sync:dry-run": "node scripts/catalog.js sync",
     "catalog:sync": "node scripts/catalog.js sync --apply",
+    "demo:sync": "node scripts/demo-account.js",
     "db:migrate": "sequelize-cli db:migrate",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",
-    "db:setup": "npm run db:migrate && npm run catalog:sync",
+    "db:setup": "npm run db:migrate && npm run catalog:sync && npm run demo:sync",
     "db:smoke": "node scripts/database-smoke.js"
   },
   "keywords": [
