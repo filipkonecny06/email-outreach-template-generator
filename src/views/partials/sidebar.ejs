@@ -25,6 +25,7 @@
           class="template-item <%= selectedTemplate && selectedTemplate.id === template.id ? 'active' : '' %>"
           data-template-id="<%= template.id %>"
           data-required-fields='<%= JSON.stringify(template.requiredFields) %>'
+          data-follow-up-required-fields='<%= JSON.stringify(template.followUpRequiredFields) %>'
           aria-label="Select <%= template.name %>"
           aria-selected="<%= selectedTemplate && selectedTemplate.id === template.id ? 'true' : 'false' %>"
         >

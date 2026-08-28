@@ -1,17 +1,18 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
+const { loadValidatedDatabaseConfig } = require('./environment');
+const { createSequelizeCliOptions } = require('./databaseConnection');
+
+const database = loadValidatedDatabaseConfig();
 const common = {
-  dialect: 'mysql',
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 3306),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  logging: false
+  ...createSequelizeCliOptions(database),
+  username: database.user,
+  password: database.password,
+  database: database.name
 };
 
 module.exports = {
-  development: common,
-  test: { ...common, database: `${process.env.DB_NAME}_test` },
-  production: common
+  development: { ...common },
+  test: { ...common },
+  production: { ...common }
 };

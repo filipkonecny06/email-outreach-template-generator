@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.4
+    image: mysql:8.4.11@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
     environment:
       MYSQL_DATABASE: outreach_generator
       MYSQL_USER: outreach
@@ -32,8 +32,11 @@ services:
       DB_NAME: outreach_generator
       DB_USER: outreach
       DB_PASSWORD: outreach
+      DB_SSL: 'false'
       RATE_LIMIT_WINDOW_MS: 900000
       RATE_LIMIT_MAX: 200
+      AUTH_RATE_LIMIT_WINDOW_MS: 900000
+      AUTH_RATE_LIMIT_MAX: 10
     ports:
       - '3000:3000'
     depends_on:

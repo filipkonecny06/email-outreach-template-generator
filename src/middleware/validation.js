@@ -3,54 +3,39 @@ const { body } = require('express-validator');
 const sanitizeText = (value) => String(value || '').trim();
 const sanitizeUrl = (value) => String(value || '').trim();
 
-const outreachFieldRules = [
-  body('templateId').isInt({ min: 1 }).withMessage('Template is required.').toInt(),
-  body('firstName')
-    .notEmpty()
-    .withMessage('First name is required.')
-    .customSanitizer(sanitizeText)
-    .isLength({ max: 80 }),
-  body('siteName')
-    .notEmpty()
-    .withMessage('Site name is required.')
-    .customSanitizer(sanitizeText)
-    .isLength({ max: 120 }),
-  body('siteUrl')
-    .notEmpty()
-    .withMessage('Site URL is required.')
-    .customSanitizer(sanitizeUrl)
-    .isURL(),
-  body('topic')
-    .notEmpty()
-    .withMessage('Topic is required.')
-    .customSanitizer(sanitizeText)
-    .isLength({ max: 150 }),
-  body('articleUrl')
-    .notEmpty()
-    .withMessage('Article URL is required.')
-    .customSanitizer(sanitizeUrl)
-    .isURL(),
-  body('brokenUrl').optional({ checkFalsy: true }).customSanitizer(sanitizeUrl).isURL(),
-  body('yourUrl')
-    .notEmpty()
-    .withMessage('Your URL is required.')
-    .customSanitizer(sanitizeUrl)
-    .isURL(),
-  body('offerAngle')
-    .notEmpty()
-    .withMessage('Offer angle is required.')
-    .customSanitizer(sanitizeText)
-    .isLength({ max: 200 }),
-  body('specificCompliment')
-    .notEmpty()
-    .withMessage('Specific compliment is required.')
-    .customSanitizer(sanitizeText)
-    .isLength({ max: 200 }),
-  body('senderName')
+function hasBcryptSafeByteLength(value) {
+  return Buffer.byteLength(String(value || ''), 'utf8') <= 72;
+}
+
+function optionalText(field, maxLength) {
+  return body(field)
     .optional({ checkFalsy: true })
     .customSanitizer(sanitizeText)
-    .isLength({ max: 80 }),
-  body('goal').isIn(['link', 'guest post', 'mention']).withMessage('Invalid goal.'),
+    .isLength({ max: maxLength })
+    .withMessage(`${field} must contain at most ${maxLength} characters.`);
+}
+
+function optionalUrl(field) {
+  return body(field)
+    .optional({ checkFalsy: true })
+    .customSanitizer(sanitizeUrl)
+    .isURL({ protocols: ['http', 'https'], require_protocol: true })
+    .withMessage(`${field} must be a complete HTTP or HTTPS URL.`)
+    .isLength({ max: 2048 })
+    .withMessage(`${field} must contain at most 2048 characters.`);
+}
+
+const outreachFieldRules = [
+  body('templateId').isInt({ min: 1 }).withMessage('Template is required.').toInt(),
+  optionalText('firstName', 80),
+  optionalText('siteName', 120),
+  optionalText('topic', 150),
+  optionalUrl('articleUrl'),
+  optionalUrl('brokenUrl'),
+  optionalUrl('yourUrl'),
+  optionalText('offerAngle', 200),
+  optionalText('specificCompliment', 200),
+  optionalText('senderName', 80),
   body('tone').isIn(['direct', 'friendly', 'formal']).withMessage('Invalid tone.'),
   body('length').isIn(['short', 'medium', 'long']).withMessage('Invalid length.'),
   body('includeFollowUps').optional().isBoolean().toBoolean()
@@ -59,13 +44,19 @@ const outreachFieldRules = [
 exports.registerValidation = [
   body('email').isEmail().normalizeEmail(),
   body('password')
-    .isLength({ min: 12, max: 72 })
-    .withMessage('Password must be 12-72 characters long.')
+    .isLength({ min: 12 })
+    .withMessage('Password must contain at least 12 characters.')
+    .custom(hasBcryptSafeByteLength)
+    .withMessage('Password must contain at most 72 UTF-8 bytes.')
 ];
 
 exports.loginValidation = [
   body('email').isEmail().normalizeEmail(),
-  body('password').notEmpty().isLength({ max: 72 })
+  body('password')
+    .notEmpty()
+    .custom(hasBcryptSafeByteLength)
+    .withMessage('Password must contain at most 72 UTF-8 bytes.')
 ];
 
+exports.hasBcryptSafeByteLength = hasBcryptSafeByteLength;
 exports.outreachFieldRules = outreachFieldRules;

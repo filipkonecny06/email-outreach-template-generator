@@ -5,29 +5,23 @@
     <h1>Build an outreach email</h1>
     <p class="muted">Choose a campaign pattern, add only the details it needs, then review the plain-text output before sending.</p>
     <h2>Campaign Inputs</h2>
-    <form id="generatorForm" novalidate>
+    <% const activeFields = new Set(selectedTemplate ? selectedTemplate.requiredFields : []); %>
+    <form id="generatorForm">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <input type="hidden" id="templateId" name="templateId" value="<%= selectedTemplate ? selectedTemplate.id : '' %>" />
       <div class="form-grid">
-        <label>First Name<input class="input" name="firstName" required /></label>
-        <label>Site Name<input class="input" name="siteName" required /></label>
-        <label>Site URL<input class="input" name="siteUrl" type="url" required /></label>
-        <label>Topic<input class="input" name="topic" required /></label>
-        <label>Article URL<input class="input" name="articleUrl" type="url" required /></label>
-        <label>Broken URL (optional)<input class="input" name="brokenUrl" type="url" /></label>
-        <label>Your URL<input class="input" name="yourUrl" type="url" required /></label>
-        <label>Offer Angle<input class="input" name="offerAngle" required /></label>
-        <label>Specific Compliment<input class="input" name="specificCompliment" required /></label>
+        <label data-outreach-field="firstName" <%= activeFields.has('firstName') ? '' : 'hidden' %>>First Name<input class="input" name="firstName" <%= activeFields.has('firstName') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="siteName" <%= activeFields.has('siteName') ? '' : 'hidden' %>>Site Name<input class="input" name="siteName" <%= activeFields.has('siteName') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="topic" <%= activeFields.has('topic') ? '' : 'hidden' %>>Topic<input class="input" name="topic" <%= activeFields.has('topic') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="articleUrl" <%= activeFields.has('articleUrl') ? '' : 'hidden' %>>Article URL<input class="input" name="articleUrl" type="url" <%= activeFields.has('articleUrl') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="brokenUrl" <%= activeFields.has('brokenUrl') ? '' : 'hidden' %>>Broken URL<input class="input" name="brokenUrl" type="url" <%= activeFields.has('brokenUrl') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="yourUrl" <%= activeFields.has('yourUrl') ? '' : 'hidden' %>>Your URL<input class="input" name="yourUrl" type="url" <%= activeFields.has('yourUrl') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="offerAngle" <%= activeFields.has('offerAngle') ? '' : 'hidden' %>>Offer Angle<input class="input" name="offerAngle" <%= activeFields.has('offerAngle') ? 'required' : 'disabled' %> /></label>
+        <label data-outreach-field="specificCompliment" <%= activeFields.has('specificCompliment') ? '' : 'hidden' %>>Specific Compliment<input class="input" name="specificCompliment" <%= activeFields.has('specificCompliment') ? 'required' : 'disabled' %> /></label>
+        <label>Sender Name (optional)<input class="input" name="senderName" autocomplete="name" /></label>
       </div>
 
       <div class="form-grid campaign-controls">
-        <label>Goal
-          <select class="input" name="goal">
-            <option value="link">Link</option>
-            <option value="guest post">Guest Post</option>
-            <option value="mention">Mention</option>
-          </select>
-        </label>
         <label>Tone
           <select class="input" name="tone">
             <option value="direct">Direct</option>
@@ -71,4 +65,9 @@
     </div>
   </section>
 </section>
+<script src="/js/outreach-api-client.js" defer></script>
+<script src="/js/outreach-form-view.js" defer></script>
+<script src="/js/outreach-template-list-controller.js" defer></script>
+<script src="/js/outreach-export-service.js" defer></script>
+<script src="/js/outreach-generator-controller.js" defer></script>
 <script src="/js/generator.js" defer></script>

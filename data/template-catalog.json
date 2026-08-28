@@ -104,15 +104,7 @@
       "name": "Broken Resource Replacement",
       "category": "Broken Link",
       "summary": "Report a dead reference helpfully and suggest a relevant maintained resource without applying pressure.",
-      "requiredFields": [
-        "firstName",
-        "siteName",
-        "articleUrl",
-        "brokenUrl",
-        "yourUrl",
-        "topic",
-        "specificCompliment"
-      ],
+      "requiredFields": ["firstName", "siteName", "articleUrl", "brokenUrl", "yourUrl", "topic"],
       "subjectTemplate": "Broken resource on your {topic} page",
       "content": {
         "opener": "While reading {articleUrl}, I noticed that {brokenUrl} no longer resolves.",
@@ -139,7 +131,6 @@
       "summary": "Flag an unavailable statistics source and offer a current, well-documented replacement citation.",
       "requiredFields": [
         "firstName",
-        "siteName",
         "articleUrl",
         "brokenUrl",
         "yourUrl",
@@ -279,7 +270,6 @@
       "summary": "Offer a more current research asset by stating concrete coverage improvements instead of vague superiority.",
       "requiredFields": [
         "firstName",
-        "siteName",
         "articleUrl",
         "yourUrl",
         "topic",
@@ -310,14 +300,7 @@
       "name": "Interactive Tool Upgrade",
       "category": "Skyscraper",
       "summary": "Suggest an interactive companion tool that lets readers apply concepts from an existing educational article.",
-      "requiredFields": [
-        "firstName",
-        "siteName",
-        "articleUrl",
-        "yourUrl",
-        "topic",
-        "specificCompliment"
-      ],
+      "requiredFields": ["firstName", "articleUrl", "yourUrl", "topic", "specificCompliment"],
       "subjectTemplate": "Interactive companion for your {topic} guide",
       "content": {
         "opener": "Your explanation at {articleUrl} is unusually clear, particularly {specificCompliment}.",
@@ -342,7 +325,7 @@
       "name": "Accessible Visual Explainer",
       "category": "Skyscraper",
       "summary": "Offer a reusable diagram with accessibility metadata and transparent sourcing as an editorial enhancement.",
-      "requiredFields": ["firstName", "siteName", "articleUrl", "yourUrl", "topic", "offerAngle"],
+      "requiredFields": ["firstName", "articleUrl", "yourUrl", "topic", "offerAngle"],
       "subjectTemplate": "Reusable visual for your {topic} article",
       "content": {
         "opener": "I used your article at {articleUrl} while researching {topic}.",
@@ -373,7 +356,6 @@
         "articleUrl",
         "topic",
         "offerAngle",
-        "yourUrl",
         "specificCompliment"
       ],
       "subjectTemplate": "Podcast idea: the real numbers behind {topic}",
@@ -400,14 +382,7 @@
       "name": "Contrarian Framework Discussion",
       "category": "Podcast Pitch",
       "summary": "Offer a nuanced, defensible framework that challenges common advice and creates a useful host-led discussion.",
-      "requiredFields": [
-        "firstName",
-        "siteName",
-        "articleUrl",
-        "topic",
-        "offerAngle",
-        "specificCompliment"
-      ],
+      "requiredFields": ["firstName", "articleUrl", "topic", "offerAngle", "specificCompliment"],
       "subjectTemplate": "A respectful challenge to common {topic} advice",
       "content": {
         "opener": "Your conversation at {articleUrl} made me reconsider {topic}; {specificCompliment}.",
@@ -489,7 +464,7 @@
       "name": "Joint Workshop Proposal",
       "category": "Partnership",
       "summary": "Suggest a workshop with complementary teaching roles, a practical artifact, and low-friction planning.",
-      "requiredFields": ["firstName", "siteName", "topic", "offerAngle", "specificCompliment"],
+      "requiredFields": ["firstName", "topic", "offerAngle", "specificCompliment"],
       "subjectTemplate": "Workshop collaboration on {topic}",
       "content": {
         "opener": "Your team explains {topic} with unusual clarity—{specificCompliment}.",
@@ -653,14 +628,7 @@
       "name": "Original Data Brief",
       "category": "PR Mention",
       "summary": "Share embargo-ready original findings with methodology, limitations, and a concise relevance statement.",
-      "requiredFields": [
-        "firstName",
-        "siteName",
-        "topic",
-        "offerAngle",
-        "yourUrl",
-        "specificCompliment"
-      ],
+      "requiredFields": ["firstName", "topic", "offerAngle", "yourUrl", "specificCompliment"],
       "subjectTemplate": "New data on {topic}: {offerAngle}",
       "content": {
         "opener": "Your reporting on {topic} has been valuable, particularly {specificCompliment}.",
@@ -687,7 +655,6 @@
       "summary": "Provide a respectful factual clarification with primary evidence and no demand for favorable treatment.",
       "requiredFields": [
         "firstName",
-        "siteName",
         "articleUrl",
         "topic",
         "offerAngle",

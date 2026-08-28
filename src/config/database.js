@@ -1,13 +1,13 @@
 const { Sequelize } = require('sequelize');
+const { createSequelizeOptions } = require('./databaseConnection');
+const { loadValidatedDatabaseConfig } = require('./environment');
 
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 3306),
-  dialect: 'mysql',
-  logging: false,
-  define: {
-    underscored: false
-  }
-});
+const database = loadValidatedDatabaseConfig();
+const sequelize = new Sequelize(
+  database.name,
+  database.user,
+  database.password,
+  createSequelizeOptions(database)
+);
 
 module.exports = sequelize;

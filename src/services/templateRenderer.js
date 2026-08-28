@@ -45,7 +45,6 @@ class OutreachTemplateRenderer {
 
   render(template, values = {}) {
     if (!template) return '';
-
     return String(template).replace(TOKEN_PATTERN, (placeholder, token) => {
       const value = values[token];
       if (value === undefined || value === null || value === '') {
@@ -83,7 +82,13 @@ class OutreachTemplateRenderer {
     const tone = normalizeChoice(values.tone, Object.keys(TONE_PROFILES), 'friendly');
     const length = normalizeChoice(values.length, Object.keys(LENGTH_BLOCKS), 'medium');
     const profile = TONE_PROFILES[tone];
-    const renderingValues = { senderName: 'Your Name', ...values, ...profile };
+    const userValues = { senderName: 'Your Name', ...values };
+    // Tone fragments are application-owned. Resolve their direct personalization
+    // before inserting them into follow-ups; render() never rescans user values.
+    const resolvedProfile = Object.fromEntries(
+      Object.entries(profile).map(([key, fragment]) => [key, this.render(fragment, userValues)])
+    );
+    const renderingValues = { ...userValues, ...resolvedProfile };
     const content = template.contentConfig || template.content;
     const bodyTemplate = content
       ? this.composeBody(content, { tone, length })

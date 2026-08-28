@@ -1,17 +1,10 @@
 const { Template, Favorite } = require('../models');
 const { TemplateRepository } = require('../repositories/templateRepository');
+const { TemplateFieldService, fieldList } = require('./templateFieldService');
 const { OutreachTemplateRenderer } = require('./templateRenderer');
 const { NotFoundError, ValidationError } = require('../utils/errors');
 
-function normalizeRequiredFields(requiredFields) {
-  if (Array.isArray(requiredFields)) return requiredFields;
-  if (typeof requiredFields !== 'string') return [];
-  try {
-    return JSON.parse(requiredFields);
-  } catch {
-    return [];
-  }
-}
+const normalizeRequiredFields = fieldList;
 
 function missingFields(requiredFields, payload) {
   return normalizeRequiredFields(requiredFields).filter((field) => {
@@ -23,16 +16,18 @@ function missingFields(requiredFields, payload) {
 class TemplateGenerationService {
   constructor({
     templateRepository = new TemplateRepository({ Template, Favorite }),
-    renderer = new OutreachTemplateRenderer()
+    renderer = new OutreachTemplateRenderer(),
+    fieldService = new TemplateFieldService({ renderer })
   } = {}) {
     this.templateRepository = templateRepository;
     this.renderer = renderer;
+    this.fieldService = fieldService;
   }
 
   async getTemplates(filters) {
     const templates = await this.templateRepository.list(filters);
     return templates.map((template) => ({
-      ...template.toJSON(),
+      ...this.fieldService.decorate(template),
       isFavorite: filters.userId ? (template.Favorites || []).length > 0 : false
     }));
   }
@@ -41,14 +36,16 @@ class TemplateGenerationService {
     const template = await this.templateRepository.findById(templateId);
     if (!template) throw new NotFoundError('Template');
 
-    const missing = missingFields(template.requiredFields, payload);
+    const requiredFields = this.fieldService.fieldsFor(template, { includeFollowUps });
+    const missing = missingFields(requiredFields, payload);
     if (missing.length > 0) {
-      throw new ValidationError('Complete the fields required by this template.', {
-        fields: missing.map((field) => ({
+      throw new ValidationError(
+        'Complete the fields required by this template.',
+        missing.map((field) => ({
           field,
           message: 'This field is required by the selected template.'
         }))
-      });
+      );
     }
 
     return {

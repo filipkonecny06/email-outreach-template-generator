@@ -30,5 +30,19 @@
       </article>
     <% }) %>
   </div>
+
+  <% if (pagination.previousUrl || pagination.nextUrl) { %>
+    <nav class="history-pagination" aria-label="History pages">
+      <% if (pagination.previousUrl) { %>
+        <a class="btn btn-secondary" href="<%= pagination.previousUrl %>">Previous</a>
+      <% } else { %>
+        <span></span>
+      <% } %>
+      <span>Page <%= pagination.page %> · <%= pagination.total %> saved drafts</span>
+      <% if (pagination.nextUrl) { %>
+        <a class="btn btn-secondary" href="<%= pagination.nextUrl %>">Next</a>
+      <% } %>
+    </nav>
+  <% } %>
 </section>
 <script src="/js/history.js" defer></script>

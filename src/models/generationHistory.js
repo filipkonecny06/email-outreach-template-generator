@@ -23,15 +23,10 @@ module.exports = (sequelize) => {
       payload: {
         type: DataTypes.JSON,
         allowNull: false
-      },
-      deletedAt: {
-        type: DataTypes.DATE,
-        allowNull: true
       }
     },
     {
-      tableName: 'GenerationHistories',
-      paranoid: false
+      tableName: 'GenerationHistories'
     }
   );
 

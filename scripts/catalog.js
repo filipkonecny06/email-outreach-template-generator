@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const { TemplateCatalogRepository } = require('../src/repositories/templateCatalogRepository');
 const { TemplateCatalogService } = require('../src/services/templateCatalogService');
