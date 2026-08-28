@@ -2,7 +2,7 @@
 const { Template, Favorite } = require('../models');
 const { TemplateRepository } = require('../repositories/templateRepository');
 const { TemplateFieldService, fieldList } = require('./templateFieldService');
-const { OutreachTemplateRenderer } = require('./templateRenderer');
+const { OutreachTemplateRenderer } = require('./outreachTemplateRenderer');
 const { NotFoundError, ValidationError } = require('../utils/errors');
 
 const normalizeRequiredFields = fieldList;

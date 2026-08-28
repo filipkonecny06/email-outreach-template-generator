@@ -1,11 +1,6 @@
 /** Coordinates authenticated history filtering, pagination, rendering, and deletion. */
-const { Op } = require('sequelize');
 const { GenerationHistory, Template } = require('../models');
-const {
-  HISTORY_PAGE_SIZE,
-  HistoryService,
-  requestedPageNumber
-} = require('../services/historyService');
+const { HistoryService, requestedPageNumber } = require('../services/historyService');
 
 /** Builds pagination links while retaining the active search and sort choices. */
 function historyPageUrl({ page, search, order }) {
@@ -15,10 +10,8 @@ function historyPageUrl({ page, search, order }) {
 }
 
 class HistoryController {
-  /** @param {object} dependencies - Persistence models and an optional test service. */
+  /** @param {object} dependencies - Persistence models or a fully composed history service. */
   constructor({ GenerationHistoryModel, TemplateModel, historyService }) {
-    this.GenerationHistory = GenerationHistoryModel;
-    this.Template = TemplateModel;
     this.historyService =
       historyService || new HistoryService({ GenerationHistoryModel, TemplateModel });
     this.historyPage = this.historyPage.bind(this);
@@ -34,18 +27,9 @@ class HistoryController {
       const order = req.query.order === 'oldest' ? 'ASC' : 'DESC';
       const orderQuery = order === 'ASC' ? 'oldest' : 'newest';
       const requestedPage = requestedPageNumber(req.query.page);
-      // Ownership is part of every query, rather than being checked after records are loaded.
-      const where = { UserId: req.session.user.id };
-
-      if (search) {
-        where[Op.or] = [
-          { subject: { [Op.like]: `%${search}%` } },
-          { body: { [Op.like]: `%${search}%` } }
-        ];
-      }
-
-      const { entries, total, page } = await this.historyService.listPage({
-        where,
+      const { entries, total, page, totalPages } = await this.historyService.listForUser({
+        userId: req.session.user.id,
+        search,
         requestedPage,
         order
       });
@@ -61,9 +45,7 @@ class HistoryController {
           previousUrl:
             page > 1 ? historyPageUrl({ page: page - 1, search, order: orderQuery }) : null,
           nextUrl:
-            page * HISTORY_PAGE_SIZE < total
-              ? historyPageUrl({ page: page + 1, search, order: orderQuery })
-              : null
+            page < totalPages ? historyPageUrl({ page: page + 1, search, order: orderQuery }) : null
         }
       });
     } catch (error) {
@@ -78,17 +60,11 @@ class HistoryController {
       if (!Number.isInteger(entryId) || entryId < 1) {
         return res.status(404).render('404', { pageTitle: 'Not Found' });
       }
-      // Combining the entry and user IDs prevents deleting another user's saved draft.
-      const entry = await this.GenerationHistory.findOne({
-        where: {
-          id: entryId,
-          UserId: req.session.user.id
-        }
+      const deleted = await this.historyService.deleteOwned({
+        entryId,
+        userId: req.session.user.id
       });
-
-      if (!entry) return res.status(404).render('404', { pageTitle: 'Not Found' });
-
-      await entry.destroy();
+      if (!deleted) return res.status(404).render('404', { pageTitle: 'Not Found' });
       return res.redirect('/history');
     } catch (error) {
       return next(error);
@@ -102,7 +78,6 @@ const historyController = new HistoryController({
 });
 
 module.exports = {
-  HISTORY_PAGE_SIZE,
   HistoryController,
   deleteHistoryEntry: historyController.deleteHistoryEntry,
   historyPageUrl,

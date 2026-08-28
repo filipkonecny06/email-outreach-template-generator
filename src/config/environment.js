@@ -2,6 +2,7 @@
  * Parses environment variables into the single validated runtime configuration contract.
  */
 const VALID_ENVIRONMENTS = new Set(['development', 'test', 'production']);
+const DEFAULT_SESSION_COOKIE_NAME = 'outreach.sid';
 
 /** Converts an optional environment value to a bounded integer or NaN when invalid. */
 function integer(value, fallback, { min = 0, max = Number.MAX_SAFE_INTEGER } = {}) {
@@ -96,7 +97,7 @@ function loadConfig({ env = process.env } = {}) {
     trustProxy: parseTrustProxy(env.TRUST_PROXY),
     bodyLimit: env.BODY_LIMIT || '100kb',
     session: {
-      name: env.SESSION_COOKIE_NAME || 'outreach.sid',
+      name: env.SESSION_COOKIE_NAME || DEFAULT_SESSION_COOKIE_NAME,
       secret: env.SESSION_SECRET,
       maxAgeMs: integer(env.SESSION_MAX_AGE_MS, 86400000, { min: 60000 })
     },
@@ -143,4 +144,10 @@ function loadConfig({ env = process.env } = {}) {
   return Object.freeze(config);
 }
 
-module.exports = { boolean, loadConfig, loadValidatedDatabaseConfig, parseTrustProxy };
+module.exports = {
+  DEFAULT_SESSION_COOKIE_NAME,
+  boolean,
+  loadConfig,
+  loadValidatedDatabaseConfig,
+  parseTrustProxy
+};

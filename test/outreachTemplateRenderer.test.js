@@ -5,7 +5,7 @@ const {
   OutreachTemplateRenderer,
   extractTokens,
   renderTemplate
-} = require('../src/services/templateRenderer');
+} = require('../src/services/outreachTemplateRenderer');
 const { TemplateCatalogRepository } = require('../src/repositories/templateCatalogRepository');
 const { TemplateCatalogService } = require('../src/services/templateCatalogService');
 

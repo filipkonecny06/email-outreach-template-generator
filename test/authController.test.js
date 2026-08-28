@@ -287,13 +287,8 @@ test('authentication rotates the session and stores only the public user identit
   assert.deepEqual(req.session.user, { id: 42, email: 'person@example.com' });
 });
 
-test('logout destroys the session, clears the configured cookie, and redirects', (context, done) => {
-  const originalCookieName = process.env.SESSION_COOKIE_NAME;
-  process.env.SESSION_COOKIE_NAME = 'custom.sid';
-  context.after(() => {
-    if (originalCookieName === undefined) delete process.env.SESSION_COOKIE_NAME;
-    else process.env.SESSION_COOKIE_NAME = originalCookieName;
-  });
+test('logout destroys the session, clears the injected cookie, and redirects', (_context, done) => {
+  const controller = new authController.AuthController({ sessionCookieName: 'custom.sid' });
   const calls = [];
   const req = {
     session: {
@@ -305,7 +300,7 @@ test('logout destroys the session, clears the configured cookie, and redirects',
   };
   const res = responseRecorder();
 
-  authController.logout(req, res, done);
+  controller.logout(req, res, done);
 
   assert.deepEqual(calls, ['destroy']);
   assert.deepEqual(res.clearedCookies, ['custom.sid']);

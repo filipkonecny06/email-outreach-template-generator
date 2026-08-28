@@ -12,30 +12,36 @@
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
       <input type="hidden" id="templateId" name="templateId" value="<%= selectedTemplate ? selectedTemplate.id : '' %>" />
       <div class="form-grid">
-        <label data-outreach-field="firstName" <%= activeFields.has('firstName') ? '' : 'hidden' %>>First Name<input class="input" name="firstName" <%= activeFields.has('firstName') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="siteName" <%= activeFields.has('siteName') ? '' : 'hidden' %>>Site Name<input class="input" name="siteName" <%= activeFields.has('siteName') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="topic" <%= activeFields.has('topic') ? '' : 'hidden' %>>Topic<input class="input" name="topic" <%= activeFields.has('topic') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="articleUrl" <%= activeFields.has('articleUrl') ? '' : 'hidden' %>>Article URL<input class="input" name="articleUrl" type="url" <%= activeFields.has('articleUrl') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="brokenUrl" <%= activeFields.has('brokenUrl') ? '' : 'hidden' %>>Broken URL<input class="input" name="brokenUrl" type="url" <%= activeFields.has('brokenUrl') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="yourUrl" <%= activeFields.has('yourUrl') ? '' : 'hidden' %>>Your URL<input class="input" name="yourUrl" type="url" <%= activeFields.has('yourUrl') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="offerAngle" <%= activeFields.has('offerAngle') ? '' : 'hidden' %>>Offer Angle<input class="input" name="offerAngle" <%= activeFields.has('offerAngle') ? 'required' : 'disabled' %> /></label>
-        <label data-outreach-field="specificCompliment" <%= activeFields.has('specificCompliment') ? '' : 'hidden' %>>Specific Compliment<input class="input" name="specificCompliment" <%= activeFields.has('specificCompliment') ? 'required' : 'disabled' %> /></label>
-        <label>Sender Name (optional)<input class="input" name="senderName" autocomplete="name" /></label>
+        <% outreachFields.forEach((field) => { %>
+          <% const active = !field.catalogSelectable || activeFields.has(field.name); %>
+          <label<% if (field.catalogSelectable) { %> data-outreach-field="<%= field.name %>"<% } %> <%= active ? '' : 'hidden' %>>
+            <%= field.label %><%= field.catalogSelectable ? '' : ' (optional)' %>
+            <input
+              class="input"
+              name="<%= field.name %>"
+              type="<%= field.type %>"
+              maxlength="<%= field.maxLength %>"
+              <% if (field.autocomplete) { %>autocomplete="<%= field.autocomplete %>"<% } %>
+              <%= active && field.catalogSelectable ? 'required' : '' %>
+              <%= active ? '' : 'disabled' %>
+            />
+          </label>
+        <% }) %>
       </div>
 
       <div class="form-grid campaign-controls">
         <label>Tone
           <select class="input" name="tone">
-            <option value="direct">Direct</option>
-            <option value="friendly">Friendly</option>
-            <option value="formal">Formal</option>
+            <% toneOptions.forEach((option) => { %>
+              <option value="<%= option.value %>"><%= option.label %></option>
+            <% }) %>
           </select>
         </label>
         <label>Length
           <select class="input" name="length">
-            <option value="short">Short</option>
-            <option value="medium">Medium</option>
-            <option value="long">Long</option>
+            <% lengthOptions.forEach((option) => { %>
+              <option value="<%= option.value %>"><%= option.label %></option>
+            <% }) %>
           </select>
         </label>
       </div>

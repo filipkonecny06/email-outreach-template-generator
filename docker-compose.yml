@@ -8,7 +8,7 @@ services:
       MYSQL_PASSWORD: outreach
       MYSQL_ROOT_PASSWORD: local-root-password
     ports:
-      - '3306:3306'
+      - '${MYSQL_HOST_PORT:-3306}:3306'
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-plocal-root-password']
       interval: 5s
@@ -39,7 +39,13 @@ services:
       AUTH_RATE_LIMIT_WINDOW_MS: 900000
       AUTH_RATE_LIMIT_MAX: 10
     ports:
-      - '3000:3000'
+      - '${APP_HOST_PORT:-3000}:3000'
+    volumes:
+      # Source mounts make nodemon useful without shadowing image-installed dependencies.
+      - ./src:/app/src
+      - ./data:/app/data
+      - ./scripts:/app/scripts
+      - ./migrations:/app/migrations
     depends_on:
       # Migrations cannot start reliably until MySQL accepts connections.
       db:

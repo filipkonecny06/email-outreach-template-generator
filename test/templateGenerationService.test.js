@@ -7,7 +7,7 @@ process.env.DB_USER = 'outreach';
 
 const { TemplateCatalogRepository } = require('../src/repositories/templateCatalogRepository');
 const { TemplateCatalogService } = require('../src/services/templateCatalogService');
-const { TemplateGenerationService } = require('../src/services/templateService');
+const { TemplateGenerationService } = require('../src/services/templateGenerationService');
 
 function makeRepository(template) {
   return {

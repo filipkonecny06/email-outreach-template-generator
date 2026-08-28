@@ -1,7 +1,8 @@
 /** Validates the version-controlled template catalog and synchronizes catalog-managed rows. */
 const Ajv2020 = require('ajv/dist/2020');
 const { Op } = require('sequelize');
-const { OutreachTemplateRenderer } = require('./templateRenderer');
+const { CATALOG_FIELD_NAMES } = require('../contracts/outreach');
+const { OutreachTemplateRenderer } = require('./outreachTemplateRenderer');
 
 const RESERVED_RENDER_TOKENS = new Set([
   'greeting',
@@ -13,6 +14,7 @@ const RESERVED_RENDER_TOKENS = new Set([
   'length'
 ]);
 const IMPLICIT_RENDER_FIELDS = new Set(['firstName']);
+const CATALOG_FIELDS = new Set(CATALOG_FIELD_NAMES);
 
 /** Converts AJV's structured failures into readable CLI/startup diagnostics. */
 function formatAjvErrors(errors = []) {
@@ -181,6 +183,11 @@ class TemplateCatalogService {
       if (names.has(template.name)) throw new Error(`Duplicate template name: ${template.name}`);
       keys.add(template.key);
       names.add(template.name);
+
+      const unsupported = template.requiredFields.filter((field) => !CATALOG_FIELDS.has(field));
+      if (unsupported.length > 0) {
+        throw new Error(`${template.key} declares unsupported fields: ${unsupported.join(', ')}`);
+      }
 
       const text = [
         template.subjectTemplate,

@@ -34,7 +34,11 @@ The main boundaries are named and independently testable:
 
 - `TemplateCatalogRepository` reads the on-disk catalog.
 - `TemplateCatalogService` validates catalog structure and synchronizes catalog-owned records.
-- `TemplateRepository` contains template and favorite queries used by browsing and generation.
+- `src/contracts/outreach.js` is the source of truth for generator fields, validation limits,
+  tones, and lengths used by rendering and server-rendered controls.
+- `TemplateRepository` contains template and favorite persistence used by browsing and generation.
+- `HistoryRepository` and `HistoryService` keep ownership, filtering, and pagination out of HTTP
+  controllers.
 - `TemplateBrowserController` prepares server-rendered template pages.
 - `ApiController` owns the JSON API contract.
 - `TemplateGenerationService` enforces the selected template's required fields before rendering.
@@ -75,7 +79,18 @@ Replace `SESSION_SECRET` in `.env` with a unique value. One way to generate it i
 node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"
 ```
 
-Create the configured MySQL database and user, then initialize and start the application:
+Create the configured MySQL database and user. The following matches the development-only
+credentials in `.env.example` when MySQL accepts TCP connections from `127.0.0.1`:
+
+```sql
+CREATE DATABASE outreach_generator CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'outreach'@'127.0.0.1' IDENTIFIED BY 'outreach';
+GRANT ALL PRIVILEGES ON outreach_generator.* TO 'outreach'@'127.0.0.1';
+FLUSH PRIVILEGES;
+```
+
+Use a unique password outside local development and update `DB_PASSWORD` to match. Then
+initialize and start the application:
 
 ```bash
 npm run db:setup
@@ -102,7 +117,24 @@ For a disposable local stack:
 docker compose up --build
 ```
 
-The credentials in `docker-compose.yml` are development-only.
+The credentials in `docker-compose.yml` are development-only. Source directories are mounted
+into the development container, so nodemon observes local source edits; rebuild after changing
+dependencies or image configuration.
+
+If ports 3000 or 3306 are already occupied, choose alternate host ports without changing the
+container configuration:
+
+```bash
+APP_HOST_PORT=3001 MYSQL_HOST_PORT=3307 docker compose up --build
+```
+
+PowerShell equivalent:
+
+```powershell
+$env:APP_HOST_PORT = '3001'
+$env:MYSQL_HOST_PORT = '3307'
+docker compose up --build
+```
 
 ## Catalog operations
 
@@ -143,7 +175,16 @@ npm run check
 npm run audit:production
 ```
 
-`npm run check` runs formatting, linting, and the Node test suite with whole-source coverage thresholds, including browser-side behavior. The authentication controller has an explicit per-file floor of 90% lines, 90% functions, and 75% branches. The browser orchestration controller requires 85% lines, 90% functions, and 65% branches. Its API, form, template-list, and export collaborators each require at least 90% lines, 95% functions, and 85% branches, with 100% function floors for the API and export classes. The smaller toast and history clipboard controllers require 85% lines, 90% functions, and 70% branches. The process entry point, database bootstrap modules, the generator's nine-line browser bootstrap, EJS templates, and migrations are verified by linting, rendering assertions, catalog checks, Docker builds, and the MySQL migration job rather than Node's coverage instrumentation. CI runs the quality suite on Node 22 and 24, builds both Docker targets, exercises migrations plus catalog synchronization against MySQL 8.4, and starts the production image for a bounded liveness probe.
+`npm run check` runs formatting, linting, and the Node test suite with aggregate and
+risk-focused per-file coverage gates. Thresholds live in `package.json` and
+`scripts/check-file-coverage.js` so the executable policy remains the source of truth. Tests cover
+browser-side behavior plus an authenticated HTTP workflow through registration, rendering,
+preview, favorites, history, deletion, and logout. Process startup, database bootstrap modules,
+the small browser bootstrap, EJS templates, and migrations are checked through rendering
+assertions, catalog checks, Docker builds, and the MySQL migration job rather than coverage alone.
+CI runs the quality suite on Node 22 and 24, builds both Docker targets, exercises migrations and
+catalog synchronization against MySQL 8.4, and starts the production image for a bounded
+liveness probe.
 
 ## Security and runtime behavior
 

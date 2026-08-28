@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const workflowPath = path.join(__dirname, '..', '.github', 'workflows', 'ci.yml');
 const dockerfilePath = path.join(__dirname, '..', 'Dockerfile');
 const dockerignorePath = path.join(__dirname, '..', '.dockerignore');
+const composePath = path.join(__dirname, '..', 'docker-compose.yml');
 
 function jobSource(workflow, jobName) {
   const start = workflow.indexOf(`  ${jobName}:`);
@@ -62,12 +63,23 @@ test('Docker health checks honor the configured port while CI probes its explici
 
 test('MySQL images use an immutable version and digest', () => {
   const workflow = fs.readFileSync(workflowPath, 'utf8');
-  const compose = fs.readFileSync(path.join(__dirname, '..', 'docker-compose.yml'), 'utf8');
+  const compose = fs.readFileSync(composePath, 'utf8');
   const pinnedImage = /mysql:8\.4\.11@sha256:[a-f0-9]{64}/g;
 
   assert.equal((workflow.match(pinnedImage) || []).length, 2);
   assert.equal((compose.match(pinnedImage) || []).length, 1);
   assert.doesNotMatch(workflow, /image: mysql:8\.4(?:\s|$)/m);
+});
+
+test('local Compose ports are configurable and source edits reach nodemon', () => {
+  const compose = fs.readFileSync(composePath, 'utf8');
+
+  assert.match(compose, /\$\{APP_HOST_PORT:-3000\}:3000/);
+  assert.match(compose, /\$\{MYSQL_HOST_PORT:-3306\}:3306/);
+  for (const directory of ['src', 'data', 'scripts', 'migrations']) {
+    assert.match(compose, new RegExp(`- \\.\\/${directory}:\\/app\\/${directory}`));
+  }
+  assert.doesNotMatch(compose, /- \.\/:\/app(?:\r?\n|$)/);
 });
 
 test('Docker build context excludes local credentials and development artifacts', () => {

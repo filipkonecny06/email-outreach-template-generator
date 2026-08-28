@@ -36,9 +36,9 @@ test('history listing validates pagination and preserves filters in navigation l
   assert.equal(requestedPageNumber('5000'), 5000);
   let listOptions;
   const historyService = {
-    async listPage(options) {
+    async listForUser(options) {
       listOptions = options;
-      return { total: 60, page: 3, entries: [{ id: 51 }] };
+      return { total: 60, totalPages: 3, page: 3, entries: [{ id: 51 }] };
     }
   };
   const controller = new HistoryController({
@@ -57,7 +57,8 @@ test('history listing validates pagination and preserves filters in navigation l
     assert.fail
   );
 
-  assert.equal(listOptions.where.UserId, 42);
+  assert.equal(listOptions.userId, 42);
+  assert.equal(listOptions.search, 'campaign');
   assert.equal(listOptions.requestedPage, 9999);
   assert.equal(listOptions.order, 'ASC');
   assert.equal(res.view, 'history');

@@ -1,12 +1,23 @@
 /** Prepares template records for the generator, browser, and detail page views. */
+const { LENGTH_OPTIONS, OUTREACH_FIELDS, TONE_OPTIONS } = require('../contracts/outreach');
 const { TemplateFieldService } = require('../services/templateFieldService');
 
 class TemplateBrowserController {
   /** @param {object} dependencies - Template query adapter, catalog categories, and field policy. */
-  constructor({ templateRepository, categories, fieldService = new TemplateFieldService() }) {
+  constructor({
+    templateRepository,
+    categories,
+    fieldService = new TemplateFieldService(),
+    generatorContract = {
+      outreachFields: OUTREACH_FIELDS,
+      toneOptions: TONE_OPTIONS,
+      lengthOptions: LENGTH_OPTIONS
+    }
+  }) {
     this.templateRepository = templateRepository;
     this.categories = categories;
     this.fieldService = fieldService;
+    this.generatorContract = generatorContract;
     this.generatorPage = this.generatorPage.bind(this);
     this.templatesPage = this.templatesPage.bind(this);
     this.templateDetailPage = this.templateDetailPage.bind(this);
@@ -27,7 +38,8 @@ class TemplateBrowserController {
         templates,
         categories: this.categories,
         selectedTemplate,
-        favoriteIds
+        favoriteIds,
+        ...this.generatorContract
       });
     } catch (error) {
       return next(error);

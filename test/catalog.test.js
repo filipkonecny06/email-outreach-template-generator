@@ -13,7 +13,7 @@ const {
 } = require('../src/config/databaseConnection');
 const { TemplateCatalogRepository } = require('../src/repositories/templateCatalogRepository');
 const { TemplateCatalogService } = require('../src/services/templateCatalogService');
-const { OutreachTemplateRenderer } = require('../src/services/templateRenderer');
+const { OutreachTemplateRenderer } = require('../src/services/outreachTemplateRenderer');
 
 const campaign = {
   firstName: 'Ada',

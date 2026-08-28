@@ -3,7 +3,9 @@
  */
 const { validationResult, matchedData } = require('express-validator');
 const { Template, Favorite, GenerationHistory } = require('../models');
-const templateService = require('../services/templateService');
+const { TemplateRepository } = require('../repositories/templateRepository');
+const { HistoryService } = require('../services/historyService');
+const templateGenerationService = require('../services/templateGenerationService');
 const { NotFoundError } = require('../utils/errors');
 
 /** Sends the API's stable field-validation envelope with the current request ID. */
@@ -31,12 +33,16 @@ class ApiController {
     TemplateModel,
     FavoriteModel,
     GenerationHistoryModel,
-    generationService = templateService
+    generationService = templateGenerationService,
+    templateRepository,
+    historyService
   }) {
-    this.Template = TemplateModel;
-    this.Favorite = FavoriteModel;
-    this.GenerationHistory = GenerationHistoryModel;
     this.generationService = generationService;
+    this.templateRepository =
+      templateRepository ||
+      new TemplateRepository({ Template: TemplateModel, Favorite: FavoriteModel });
+    this.historyService =
+      historyService || new HistoryService({ GenerationHistoryModel, TemplateModel });
     this.preview = this.preview.bind(this);
     this.toggleFavorite = this.toggleFavorite.bind(this);
     this.saveHistory = this.saveHistory.bind(this);
@@ -72,20 +78,15 @@ class ApiController {
     try {
       const templateId = Number(req.params.templateId);
       const template = Number.isInteger(templateId)
-        ? await this.Template.findByPk(templateId)
+        ? await this.templateRepository.findById(templateId)
         : null;
       if (!template) throw new NotFoundError('Template');
 
-      const where = { UserId: req.session.user.id, TemplateId: templateId };
-      // The unique index prevents duplicate rows for the same user-template relationship.
-      const [favorite, created] = await this.Favorite.findOrCreate({ where, defaults: where });
-
-      if (!created) {
-        await favorite.destroy();
-        return res.json({ favorited: false });
-      }
-
-      return res.json({ favorited: true });
+      const favorited = await this.templateRepository.toggleFavorite(
+        req.session.user.id,
+        templateId
+      );
+      return res.json({ favorited });
     } catch (error) {
       return next(error);
     }
@@ -105,11 +106,9 @@ class ApiController {
         Boolean(payload.includeFollowUps)
       );
 
-      const entry = await this.GenerationHistory.create({
-        UserId: req.session.user.id,
-        TemplateId: rendered.template.id,
-        subject: rendered.subject,
-        body: rendered.body,
+      const entry = await this.historyService.saveSnapshot({
+        userId: req.session.user.id,
+        rendered,
         payload
       });
 

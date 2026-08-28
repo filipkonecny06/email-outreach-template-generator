@@ -65,3 +65,49 @@ test('pagination keeps pages beyond 1000 reachable and handles an empty history'
     offset: 0
   });
 });
+
+test('user history owns filtering, injected page size, saving, and deletion', async () => {
+  const calls = [];
+  const entry = { destroy: async () => calls.push('destroy') };
+  const historyRepository = {
+    count: async (where) => {
+      calls.push(['count', where]);
+      return 11;
+    },
+    findPage: async (query) => {
+      calls.push(['findPage', query]);
+      return [{ id: 1 }];
+    },
+    create: async (record) => {
+      calls.push(['create', record]);
+      return { id: 9 };
+    },
+    findOwnedById: async (id, userId) => {
+      calls.push(['findOwnedById', id, userId]);
+      return entry;
+    }
+  };
+  const service = new HistoryService({ historyRepository, pageSize: 10 });
+
+  const page = await service.listForUser({
+    userId: 42,
+    search: 'campaign',
+    requestedPage: 1,
+    order: 'DESC'
+  });
+  assert.equal(page.totalPages, 2);
+  assert.equal(calls[0][1].UserId, 42);
+  assert.equal(calls[0][1][require('sequelize').Op.or].length, 2);
+  assert.equal(calls[1][1].limit, 10);
+
+  const rendered = { template: { id: 7 }, subject: 'Subject', body: 'Body' };
+  assert.deepEqual(
+    await service.saveSnapshot({ userId: 42, rendered, payload: { tone: 'direct' } }),
+    {
+      id: 9
+    }
+  );
+  assert.equal(await service.deleteOwned({ entryId: 9, userId: 42 }), true);
+  historyRepository.findOwnedById = async () => null;
+  assert.equal(await service.deleteOwned({ entryId: 9, userId: 7 }), false);
+});

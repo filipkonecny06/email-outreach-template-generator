@@ -1,5 +1,5 @@
 /** Derives the input fields needed by a template's main message and follow-ups. */
-const { OutreachTemplateRenderer } = require('./templateRenderer');
+const { OutreachTemplateRenderer } = require('./outreachTemplateRenderer');
 
 function fieldList(value) {
   if (Array.isArray(value)) return value;

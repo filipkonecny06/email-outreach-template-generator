@@ -1,32 +1,21 @@
 /** Converts template records and form values into plain-text outreach copy. */
+const { LENGTH_BLOCKS, TONE_PROFILES } = require('../contracts/outreach');
+
 const TOKEN_PATTERN = /\{([a-zA-Z0-9_]+)\}/g;
 
-const TONE_PROFILES = Object.freeze({
-  direct: Object.freeze({
-    greeting: 'Hi {firstName},',
-    bridge: 'Here is the relevant part:',
-    cta: 'Is this worth a quick look?',
-    signoff: 'Best,\n{senderName}'
-  }),
-  friendly: Object.freeze({
-    greeting: 'Hi {firstName},',
-    bridge: 'I thought this might be genuinely useful for your readers:',
-    cta: 'Would you be open to taking a look?',
-    signoff: 'Thanks,\n{senderName}'
-  }),
-  formal: Object.freeze({
-    greeting: 'Hello {firstName},',
-    bridge: 'I am writing to share the following relevant context:',
-    cta: 'Would you be willing to consider it?',
-    signoff: 'Kind regards,\n{senderName}'
-  })
-});
-
-const LENGTH_BLOCKS = Object.freeze({
-  short: Object.freeze(['opener', 'value', 'close']),
-  medium: Object.freeze(['opener', 'value', 'proof', 'close']),
-  long: Object.freeze(['opener', 'value', 'proof', 'detail', 'close'])
-});
+/**
+ * @typedef {object} OutreachTemplate
+ * @property {string} subjectTemplate
+ * @property {string} [bodyTemplate]
+ * @property {Record<string, string>} [contentConfig]
+ * @property {Record<string, string>} [content]
+ * @property {Array<{sequence?: number, subjectTemplate?: string, bodyTemplate?: string}>} [followUps]
+ *
+ * @typedef {object} RenderedCampaign
+ * @property {string} subject
+ * @property {string} body
+ * @property {Array<{sequence: number, subject: string, body: string}>} [followUps]
+ */
 
 function normalizeChoice(value, allowed, fallback) {
   return allowed.includes(value) ? value : fallback;
@@ -60,7 +49,6 @@ class OutreachTemplateRenderer {
     });
   }
 
-  /** Returns unique token names in first-appearance order. */
   extractTokens(template) {
     const tokens = new Set();
     for (const match of String(template || '').matchAll(TOKEN_PATTERN)) {
@@ -69,7 +57,6 @@ class OutreachTemplateRenderer {
     return [...tokens];
   }
 
-  /** Composes the catalog's content blocks according to a supported tone and length profile. */
   composeBody(content, { tone = 'friendly', length = 'medium' } = {}) {
     const selectedTone = normalizeChoice(tone, Object.keys(TONE_PROFILES), 'friendly');
     const selectedLength = normalizeChoice(length, Object.keys(LENGTH_BLOCKS), 'medium');
@@ -86,9 +73,7 @@ class OutreachTemplateRenderer {
     return paragraphs.join('\n\n');
   }
 
-  /**
-   * Renders the primary message and, when requested, its configured follow-up sequence.
-   */
+  /** @param {OutreachTemplate} template @returns {RenderedCampaign} */
   renderCampaign(template, values = {}, { includeFollowUps = false } = {}) {
     const tone = normalizeChoice(values.tone, Object.keys(TONE_PROFILES), 'friendly');
     const length = normalizeChoice(values.length, Object.keys(LENGTH_BLOCKS), 'medium');

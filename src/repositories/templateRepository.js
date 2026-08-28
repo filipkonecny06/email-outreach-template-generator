@@ -48,6 +48,14 @@ class TemplateRepository {
     });
     return favorites.map((favorite) => favorite.TemplateId);
   }
+
+  /** Atomically toggles one user-template favorite and returns its resulting state. */
+  async toggleFavorite(userId, templateId) {
+    const where = { UserId: userId, TemplateId: templateId };
+    const [favorite, created] = await this.Favorite.findOrCreate({ where, defaults: where });
+    if (!created) await favorite.destroy();
+    return created;
+  }
 }
 
 module.exports = { TemplateRepository };

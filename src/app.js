@@ -22,15 +22,27 @@ const { attachUser, requireAuth } = require('./middleware/auth');
 const { createErrorHandler, notFound } = require('./middleware/errors');
 const { AppError } = require('./utils/errors');
 const pageRoutes = require('./routes/pages');
-const authRoutes = require('./routes/auth');
+const { createAuthRouter } = require('./routes/auth');
 const historyRoutes = require('./routes/history');
 const apiRoutes = require('./routes/api');
+
+/**
+ * @typedef {object} ApplicationConfig
+ * @property {string} nodeEnv
+ * @property {boolean} isProduction
+ * @property {number} port
+ * @property {boolean | number | string} trustProxy
+ * @property {string} bodyLimit
+ * @property {{name: string, secret: string, maxAgeMs: number}} session
+ * @property {{windowMs: number, max: number, authWindowMs: number, authMax: number}} rateLimit
+ * @property {{host: string, port: number, name: string, user: string, password: string, ssl: object}} database
+ */
 
 /**
  * Creates the persistent session adapter used by Express.
  * Keeping sessions in MySQL avoids losing logins when the Node.js process restarts.
  *
- * @param {object} config - Validated application configuration.
+ * @param {ApplicationConfig} config - Validated application configuration.
  * @param {object} [dependencies] - Optional adapters used by tests.
  * @returns {object} An express-session compatible store.
  */
@@ -56,11 +68,23 @@ function createSessionStore(config, { Store = MySQLStore, createPool = mysql.cre
   );
 }
 
+/** Builds a rate limiter that forwards failures through the shared error contract. */
+function createRequestLimiter({ windowMs, limit, message }) {
+  return rateLimit({
+    windowMs,
+    limit,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, _res, next) =>
+      next(new AppError(message, { status: 429, code: 'RATE_LIMITED' }))
+  });
+}
+
 /**
  * Composes the HTTP application without opening a network port.
  * Dependency parameters keep integration tests isolated from real infrastructure.
  *
- * @param {object} [options] - Application dependencies and validated configuration.
+ * @param {{config?: ApplicationConfig, sessionStore?: object, appLogger?: object}} [options]
  * @returns {import('express').Express} A configured Express application.
  */
 function createApp({
@@ -122,18 +146,10 @@ function createApp({
     next();
   });
   app.use(
-    rateLimit({
+    createRequestLimiter({
       windowMs: config.rateLimit.windowMs,
       limit: config.rateLimit.max,
-      standardHeaders: 'draft-8',
-      legacyHeaders: false,
-      handler: (_req, _res, next) =>
-        next(
-          new AppError('Too many requests. Please try again later.', {
-            status: 429,
-            code: 'RATE_LIMITED'
-          })
-        )
+      message: 'Too many requests. Please try again later.'
     })
   );
   app.use(
@@ -170,23 +186,15 @@ function createApp({
   });
 
   // Authentication gets a tighter limit than ordinary application traffic.
-  const authLimiter = rateLimit({
+  const authLimiter = createRequestLimiter({
     windowMs: config.rateLimit.authWindowMs,
     limit: config.rateLimit.authMax,
-    standardHeaders: 'draft-8',
-    legacyHeaders: false,
-    handler: (_req, _res, next) =>
-      next(
-        new AppError('Too many authentication attempts. Please try again later.', {
-          status: 429,
-          code: 'RATE_LIMITED'
-        })
-      )
+    message: 'Too many authentication attempts. Please try again later.'
   });
   app.post(['/auth/login', '/auth/register'], authLimiter);
 
   app.use('/', pageRoutes);
-  app.use('/auth', authRoutes);
+  app.use('/auth', createAuthRouter({ sessionCookieName: config.session.name }));
   app.use('/history', requireAuth, historyRoutes);
   app.use('/api', apiRoutes);
   app.use(notFound);
@@ -195,4 +203,4 @@ function createApp({
   return app;
 }
 
-module.exports = { createApp, createSessionStore };
+module.exports = { createApp, createRequestLimiter, createSessionStore };

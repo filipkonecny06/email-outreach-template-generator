@@ -2,12 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const demoAccount = require('../src/config/demoAccount');
+const { BCRYPT_COST, BCRYPT_MAX_PASSWORD_BYTES } = require('../src/services/passwordService');
 const { syncDemoAccount } = require('../scripts/demo-account');
 
 test('demo credentials are valid public login inputs', () => {
   assert.equal(demoAccount.email, 'demo@example.com');
   assert.ok(demoAccount.password.length >= 12);
-  assert.ok(Buffer.byteLength(demoAccount.password, 'utf8') <= 72);
+  assert.ok(Buffer.byteLength(demoAccount.password, 'utf8') <= BCRYPT_MAX_PASSWORD_BYTES);
 });
 
 test('demo account provisioning creates an ordinary user with a bcrypt cost of 12', async () => {
@@ -32,7 +33,7 @@ test('demo account provisioning creates an ordinary user with a bcrypt cost of 1
 
   assert.deepEqual(result, { email: demoAccount.email, status: 'created' });
   assert.deepEqual(calls, [
-    ['hash', demoAccount.password, 12],
+    ['hash', demoAccount.password, BCRYPT_COST],
     ['create', { email: demoAccount.email, passwordHash: 'portfolio-password-hash' }]
   ]);
   assert.equal('role' in calls[1][1], false);
@@ -79,7 +80,7 @@ test('demo account provisioning repairs a drifted password without changing iden
     compare: async () => false,
     async hash(password, cost) {
       assert.equal(password, demoAccount.password);
-      assert.equal(cost, 12);
+      assert.equal(cost, BCRYPT_COST);
       return 'restored-password-hash';
     }
   };

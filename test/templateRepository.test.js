@@ -49,3 +49,23 @@ test('anonymous template listing does not join favorite records', async () => {
   assert.deepEqual(query.where, {});
   assert.deepEqual(query.include, []);
 });
+
+test('favorite toggles remain atomic and return the resulting state', async () => {
+  const calls = [];
+  const existing = { destroy: async () => calls.push('destroy') };
+  const Favorite = {
+    async findOrCreate(options) {
+      calls.push(options);
+      return calls.length === 1 ? [{}, true] : [existing, false];
+    }
+  };
+  const repository = new TemplateRepository({ Template: {}, Favorite });
+
+  assert.equal(await repository.toggleFavorite(42, 7), true);
+  assert.equal(await repository.toggleFavorite(42, 7), false);
+  assert.deepEqual(calls[0], {
+    where: { UserId: 42, TemplateId: 7 },
+    defaults: { UserId: 42, TemplateId: 7 }
+  });
+  assert.equal(calls[2], 'destroy');
+});

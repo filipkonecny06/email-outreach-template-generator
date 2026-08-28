@@ -12,8 +12,36 @@ const outreachBrowserDependencies = (() => {
   return typeof window === 'undefined' ? {} : window.OutreachOps || {};
 })();
 
+/**
+ * @typedef {object} GeneratorElements
+ * @property {HTMLElement} page
+ * @property {string} csrfToken
+ * @property {HTMLFormElement} form
+ * @property {HTMLElement} templateList
+ * @property {HTMLInputElement} templateIdInput
+ * @property {HTMLElement} subjectPreview
+ * @property {HTMLElement} bodyPreview
+ * @property {HTMLElement} formError
+ * @property {HTMLElement} followUpContainer
+ * @property {HTMLSelectElement} categoryFilter
+ * @property {HTMLInputElement} searchInput
+ * @property {HTMLInputElement} favoritesOnly
+ * @property {HTMLButtonElement} copySubjectButton
+ * @property {HTMLButtonElement} copyBodyButton
+ * @property {HTMLButtonElement} downloadTextButton
+ * @property {HTMLButtonElement} exportCsvButton
+ * @property {HTMLButtonElement} saveHistoryButton
+ * @property {HTMLInputElement} includeFollowUps
+ * @property {HTMLElement[]} fieldContainers
+ *
+ * @typedef {object} GeneratorState
+ * @property {string} subject
+ * @property {string} body
+ * @property {Array<{sequence: number, subject: string, body: string}>} followUps
+ */
+
 class OutreachGeneratorController {
-  /** Collects the generator page contract, or null when mounted on another page. */
+  /** @returns {GeneratorElements | null} */
   static collectElements(documentObject) {
     const page = documentObject?.querySelector('[data-page="generator"]');
     if (!page) return null;
@@ -60,6 +88,7 @@ class OutreachGeneratorController {
     this.clearTimer = options.clearTimeoutImpl || globalThis.clearTimeout;
     this.elements =
       options.elements || OutreachGeneratorController.collectElements(this.document) || {};
+    /** @type {GeneratorState} */
     this.state = { subject: '', body: '', followUps: [] };
     this.previewController = null;
     this.savingHistory = false;

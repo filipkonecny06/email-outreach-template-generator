@@ -10,7 +10,7 @@ const session = require('express-session');
 const { createApp, createSessionStore } = require('../src/app');
 const bcrypt = require('bcrypt');
 const { User, Template, Favorite, GenerationHistory } = require('../src/models');
-const templateService = require('../src/services/templateService');
+const templateGenerationService = require('../src/services/templateGenerationService');
 
 const silentLogger = { info() {}, warn() {}, error() {} };
 
@@ -109,7 +109,7 @@ test('browser API mutations require the canonical X-CSRF-Token session contract'
   replace(Favorite, 'findOrCreate', async () => [{ destroy: async () => {} }, true]);
   replace(Favorite, 'findAll', async () => []);
   replace(GenerationHistory, 'create', async () => ({ id: 99 }));
-  replace(templateService, 'renderFromTemplate', async (templateId) => ({
+  replace(templateGenerationService, 'renderFromTemplate', async (templateId) => ({
     template: { id: templateId },
     subject: 'Rendered subject',
     body: 'Rendered body',

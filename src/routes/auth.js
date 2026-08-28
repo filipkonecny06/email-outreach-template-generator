@@ -1,13 +1,20 @@
 const express = require('express');
 const authController = require('../controllers/authController');
+const { AuthController } = authController;
 const { registerValidation, loginValidation } = require('../middleware/validation');
 
-const router = express.Router();
+function createAuthRouter({ controller, sessionCookieName } = {}) {
+  const selectedController = controller || new AuthController({ sessionCookieName });
+  const router = express.Router();
 
-router.get('/login', authController.showLogin);
-router.get('/register', authController.showRegister);
-router.post('/register', registerValidation, authController.postRegister);
-router.post('/login', loginValidation, authController.postLogin);
-router.post('/logout', authController.logout);
+  router.get('/login', selectedController.showLogin);
+  router.get('/register', selectedController.showRegister);
+  router.post('/register', registerValidation, selectedController.postRegister);
+  router.post('/login', loginValidation, selectedController.postLogin);
+  router.post('/logout', selectedController.logout);
+  return router;
+}
 
+const router = createAuthRouter({ controller: authController });
 module.exports = router;
+module.exports.createAuthRouter = createAuthRouter;

@@ -1,11 +1,10 @@
-/** Handles credential validation and the authenticated session lifecycle. */
-const bcrypt = require('bcrypt');
 const { validationResult } = require('express-validator');
 const demoAccount = require('../config/demoAccount');
+const { DEFAULT_SESSION_COOKIE_NAME } = require('../config/environment');
 const { User } = require('../models');
+const { INVALID_PASSWORD_HASH, passwordService } = require('../services/passwordService');
 
-// Comparing against a real bcrypt hash keeps unknown-email logins on the expensive code path.
-const INVALID_PASSWORD_HASH = '$2b$12$jbQxnq8l5trJLrlr4HGWbuf/tZx1nxIiVSxG6vNZj9bIm0LT/0pV6';
+/** @typedef {{id: number, email: string}} SessionUser */
 
 function retainedAuthValues(values = {}) {
   // Passwords and unrecognized form fields must never be reflected into an error response.
@@ -13,33 +12,37 @@ function retainedAuthValues(values = {}) {
   return email ? { email } : {};
 }
 
-/** Renders one auth mode with only explicitly retained form values. */
-function renderAuthPage(_req, res, type, errors = [], values = {}, status = 200) {
+function renderAuthPage(
+  _req,
+  res,
+  type,
+  errors = [],
+  values = {},
+  status = 200,
+  publicDemoAccount = demoAccount
+) {
   return res.status(status).render('auth', {
     pageTitle: type === 'login' ? 'Login' : 'Register',
     type,
     errors,
     values: retainedAuthValues(values),
-    demoAccount: type === 'login' ? demoAccount : null
+    demoAccount: type === 'login' ? publicDemoAccount : null
   });
 }
 
-/** Maps either duplicate-email detection path to the same conflict response. */
-function renderDuplicateEmail(req, res) {
+function renderDuplicateEmail(req, res, publicDemoAccount = demoAccount) {
   return renderAuthPage(
     req,
     res,
     'register',
     [{ msg: 'Email is already in use.', path: 'email' }],
     req.body,
-    409
+    409,
+    publicDemoAccount
   );
 }
 
-/**
- * Replaces the anonymous session before attaching identity to prevent session fixation.
- * Resolves only after the new identity has been persisted by the backing store.
- */
+/** Rotates the anonymous session and persists the minimum public user identity. */
 function establishSession(req, user) {
   return new Promise((resolve, reject) => {
     req.session.regenerate((regenerateError) => {
@@ -50,75 +53,131 @@ function establishSession(req, user) {
   });
 }
 
-exports.showLogin = (req, res) => renderAuthPage(req, res, 'login');
-exports.showRegister = (req, res) => renderAuthPage(req, res, 'register');
-
-/** Validates credentials, creates a user, and starts a rotated authenticated session. */
-exports.postRegister = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return renderAuthPage(req, res, 'register', errors.array(), req.body, 422);
-    }
-
-    const { email, password } = req.body;
-    const existing = await User.findOne({ where: { email } });
-    if (existing) return renderDuplicateEmail(req, res);
-
-    // An explicit cost keeps the password-hashing policy consistent across environments.
-    const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ email, passwordHash });
-
-    await establishSession(req, user);
-    return res.redirect('/generator');
-  } catch (error) {
-    // The unique database constraint closes the race between the lookup and concurrent inserts.
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return renderDuplicateEmail(req, res);
-    }
-    return next(error);
+class AuthController {
+  /**
+   * @param {object} [dependencies]
+   * @param {typeof User} [dependencies.UserModel]
+   * @param {{hash(password: string): Promise<string>, compare(password: string, hash: string): Promise<boolean>}} [dependencies.passwords]
+   * @param {{email: string, password: string}} [dependencies.publicDemoAccount]
+   * @param {string} [dependencies.sessionCookieName]
+   */
+  constructor({
+    UserModel = User,
+    passwords = passwordService,
+    publicDemoAccount = demoAccount,
+    sessionCookieName = DEFAULT_SESSION_COOKIE_NAME
+  } = {}) {
+    this.User = UserModel;
+    this.passwords = passwords;
+    this.publicDemoAccount = publicDemoAccount;
+    this.sessionCookieName = sessionCookieName;
+    this.showLogin = this.showLogin.bind(this);
+    this.showRegister = this.showRegister.bind(this);
+    this.postRegister = this.postRegister.bind(this);
+    this.postLogin = this.postLogin.bind(this);
+    this.logout = this.logout.bind(this);
   }
-};
 
-/** Verifies credentials without revealing whether an email address exists. */
-exports.postLogin = async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return renderAuthPage(req, res, 'login', errors.array(), req.body, 422);
+  showLogin(req, res) {
+    return renderAuthPage(req, res, 'login', [], {}, 200, this.publicDemoAccount);
+  }
+
+  showRegister(req, res) {
+    return renderAuthPage(req, res, 'register', [], {}, 200, this.publicDemoAccount);
+  }
+
+  async postRegister(req, res, next) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return renderAuthPage(
+          req,
+          res,
+          'register',
+          errors.array(),
+          req.body,
+          422,
+          this.publicDemoAccount
+        );
+      }
+
+      const { email, password } = req.body;
+      const existing = await this.User.findOne({ where: { email } });
+      if (existing) return renderDuplicateEmail(req, res, this.publicDemoAccount);
+
+      const passwordHash = await this.passwords.hash(password);
+      const user = await this.User.create({ email, passwordHash });
+      await establishSession(req, user);
+      return res.redirect('/generator');
+    } catch (error) {
+      // The unique constraint closes the race between the lookup and concurrent inserts.
+      if (error.name === 'SequelizeUniqueConstraintError') {
+        return renderDuplicateEmail(req, res, this.publicDemoAccount);
+      }
+      return next(error);
     }
+  }
 
-    const { email, password } = req.body;
-    const user = await User.scope('withPassword').findOne({ where: { email } });
-    const isValid = await bcrypt.compare(password, user?.passwordHash || INVALID_PASSWORD_HASH);
-    if (!user || !isValid) {
-      return renderAuthPage(
-        req,
-        res,
-        'login',
-        [{ msg: 'Invalid credentials.', path: 'email' }],
-        req.body,
-        401
+  async postLogin(req, res, next) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return renderAuthPage(
+          req,
+          res,
+          'login',
+          errors.array(),
+          req.body,
+          422,
+          this.publicDemoAccount
+        );
+      }
+
+      const { email, password } = req.body;
+      const user = await this.User.scope('withPassword').findOne({ where: { email } });
+      const isValid = await this.passwords.compare(
+        password,
+        user?.passwordHash || INVALID_PASSWORD_HASH
       );
+      if (!user || !isValid) {
+        return renderAuthPage(
+          req,
+          res,
+          'login',
+          [{ msg: 'Invalid credentials.', path: 'email' }],
+          req.body,
+          401,
+          this.publicDemoAccount
+        );
+      }
+
+      await establishSession(req, user);
+      return res.redirect('/generator');
+    } catch (error) {
+      return next(error);
     }
-
-    await establishSession(req, user);
-    return res.redirect('/generator');
-  } catch (error) {
-    return next(error);
   }
-};
 
-/** Destroys server-side session state before clearing the matching browser cookie. */
-exports.logout = (req, res, next) => {
-  req.session.destroy((err) => {
-    if (err) return next(err);
-    res.clearCookie(process.env.SESSION_COOKIE_NAME || 'outreach.sid');
-    return res.redirect('/');
-  });
-};
+  logout(req, res, next) {
+    req.session.destroy((error) => {
+      if (error) return next(error);
+      res.clearCookie(this.sessionCookieName);
+      return res.redirect('/');
+    });
+  }
+}
 
-exports.establishSession = establishSession;
-exports.renderAuthPage = renderAuthPage;
-exports.renderDuplicateEmail = renderDuplicateEmail;
-exports.retainedAuthValues = retainedAuthValues;
+const authController = new AuthController();
+
+module.exports = {
+  AuthController,
+  establishSession,
+  logout: authController.logout,
+  postLogin: authController.postLogin,
+  postRegister: authController.postRegister,
+  renderAuthPage,
+  renderDuplicateEmail,
+  retainedAuthValues,
+  showLogin: authController.showLogin,
+  showRegister: authController.showRegister
+};
