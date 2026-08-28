@@ -6,8 +6,9 @@
     const button = event.target.closest('.copy-history');
     if (!button) return;
 
-    const subject = button.getAttribute('data-subject') || '';
-    const body = button.getAttribute('data-body') || '';
+    const card = button.closest('.history-card');
+    const subject = card?.querySelector('[data-history-subject]')?.textContent || '';
+    const body = card?.querySelector('[data-history-body]')?.textContent || '';
 
     await navigator.clipboard.writeText(`Subject: ${subject}\n\n${body}`);
     window.toast('History entry copied.', 'success');

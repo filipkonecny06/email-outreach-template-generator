@@ -1,7 +1,9 @@
-<section class="generator-grid" data-page="generator">
+<section class="generator-grid" data-page="generator" aria-busy="false">
   <%- include('partials/sidebar') %>
 
   <section class="panel form-panel" aria-label="Input Form">
+    <h1>Build an outreach email</h1>
+    <p class="muted">Choose a campaign pattern, add only the details it needs, then review the plain-text output before sending.</p>
     <h2>Campaign Inputs</h2>
     <form id="generatorForm" novalidate>
       <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
@@ -44,11 +46,11 @@
 
       <label class="checkbox-row"><input type="checkbox" name="includeFollowUps" id="includeFollowUps" /> Include follow-up sequence</label>
       <button type="submit" class="btn">Generate Preview</button>
-      <p id="formError" class="form-error" role="alert"></p>
+      <p id="formError" class="form-error" role="alert" aria-live="assertive"></p>
     </form>
   </section>
 
-  <section class="panel preview-panel" aria-label="Output Preview">
+  <section class="panel preview-panel" aria-label="Output Preview" aria-live="polite">
     <h2>Live Output Preview</h2>
     <div class="preview-block">
       <h3>Subject</h3>

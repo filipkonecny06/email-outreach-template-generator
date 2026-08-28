@@ -19,22 +19,23 @@
 
   <ul id="templateList" class="template-list" role="listbox" aria-label="Template results">
     <% templates.forEach((template) => { %>
-      <li>
+      <li class="template-row">
         <button
           type="button"
           class="template-item <%= selectedTemplate && selectedTemplate.id === template.id ? 'active' : '' %>"
           data-template-id="<%= template.id %>"
           data-required-fields='<%= JSON.stringify(template.requiredFields) %>'
           aria-label="Select <%= template.name %>"
+          aria-selected="<%= selectedTemplate && selectedTemplate.id === template.id ? 'true' : 'false' %>"
         >
           <span>
             <strong><%= template.name %></strong>
             <small><%= template.category %></small>
           </span>
-          <% if (currentUser) { %>
-            <span class="favorite-toggle <%= favoriteIds.includes(template.id) ? 'active' : '' %>" data-favorite-id="<%= template.id %>" role="button" tabindex="0" aria-label="Toggle Favorite">&#9733;</span>
-          <% } %>
         </button>
+        <% if (currentUser) { %>
+          <button class="favorite-toggle <%= favoriteIds.includes(template.id) ? 'active' : '' %>" type="button" data-favorite-id="<%= template.id %>" aria-pressed="<%= favoriteIds.includes(template.id) ? 'true' : 'false' %>" aria-label="Toggle favorite for <%= template.name %>">&#9733;</button>
+        <% } %>
       </li>
     <% }) %>
   </ul>

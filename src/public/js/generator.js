@@ -46,11 +46,17 @@
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/\"/g, '&quot;')
+      .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
 
   const highlightTokens = (text) =>
     escapeHtml(text).replace(/\{[a-zA-Z0-9_]+\}/g, (token) => `<mark>${token}</mark>`);
+
+  const toCsvCell = (value) => {
+    const text = String(value ?? '');
+    const safeText = /^[=+\-@]/.test(text) ? `'${text}` : text;
+    return `"${safeText.replace(/"/g, '""')}"`;
+  };
 
   const renderPreview = () => {
     subjectPreview.innerHTML = highlightTokens(state.subject || 'No subject generated yet.');
@@ -85,7 +91,11 @@
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.errors ? data.errors.map((e) => e.msg).join(' ') : data.message || 'Failed to generate preview.');
+        throw new Error(
+          data.errors
+            ? data.errors.map((e) => e.msg).join(' ')
+            : data.message || 'Failed to generate preview.'
+        );
       }
 
       state.subject = data.subject;
@@ -103,8 +113,12 @@
     const btn = event.target.closest('.template-item');
     if (!btn) return;
 
-    templateList.querySelectorAll('.template-item').forEach((item) => item.classList.remove('active'));
+    templateList.querySelectorAll('.template-item').forEach((item) => {
+      item.classList.remove('active');
+      item.setAttribute('aria-selected', 'false');
+    });
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
     templateIdInput.value = btn.getAttribute('data-template-id');
     debouncedPreview();
   });
@@ -126,6 +140,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Favorite action failed.');
       favoriteToggle.classList.toggle('active', data.favorited);
+      favoriteToggle.setAttribute('aria-pressed', String(data.favorited));
       window.toast(`Template ${data.favorited ? 'favorited' : 'unfavorited'}.`, 'success');
     } catch (error) {
       window.toast(error.message, 'error');
@@ -144,11 +159,10 @@
 
     templateList.innerHTML = data
       .map(
-        (template) => `<li>
+        (template) => `<li class="template-row">
           <button type="button" class="template-item" data-template-id="${template.id}" aria-label="Select ${template.name}">
             <span><strong>${escapeHtml(template.name)}</strong><small>${escapeHtml(template.category)}</small></span>
-            <span class="favorite-toggle ${template.isFavorite ? 'active' : ''}" data-favorite-id="${template.id}" role="button" tabindex="0">&#9733;</span>
-          </button>
+          </button>${template.isFavorite !== undefined ? `<button class="favorite-toggle ${template.isFavorite ? 'active' : ''}" type="button" data-favorite-id="${template.id}" aria-pressed="${template.isFavorite ? 'true' : 'false'}" aria-label="Toggle favorite for ${escapeHtml(template.name)}">&#9733;</button>` : ''}
         </li>`
       )
       .join('');
@@ -186,7 +200,8 @@
   });
 
   exportCsvBtn.addEventListener('click', () => {
-    const row = ['subject', 'body'].join(',') + '\n' + [state.subject, state.body].map((v) => `"${String(v).replace(/\"/g, '""')}"`).join(',');
+    const row =
+      ['subject', 'body'].join(',') + '\n' + [state.subject, state.body].map(toCsvCell).join(',');
     const blob = new Blob([row], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -218,4 +233,3 @@
     fetchPreview();
   }
 })();
-

@@ -16,12 +16,12 @@
     <% entries.forEach((entry) => { %>
       <article class="panel history-card">
         <header>
-          <h2><%= entry.subject %></h2>
-          <p class="muted"><%= entry.Template ? `${entry.Template.name} (${entry.Template.category})` : 'Custom template' %> · <%= new Date(entry.createdAt).toLocaleString() %></p>
+          <h2 data-history-subject><%= entry.subject %></h2>
+          <p class="muted"><%= entry.Template ? `${entry.Template.name} (${entry.Template.category})` : 'Custom template' %> Â· <%= new Date(entry.createdAt).toLocaleString() %></p>
         </header>
-        <pre class="preview-text"><%= entry.body %></pre>
+        <pre class="preview-text" data-history-body><%= entry.body %></pre>
         <div class="preview-actions">
-          <button class="btn btn-secondary copy-history" type="button" data-subject="<%- entry.subject %>" data-body="<%- entry.body %>">Copy</button>
+          <button class="btn btn-secondary copy-history" type="button">Copy</button>
           <form action="/history/<%= entry.id %>?_method=DELETE" method="POST">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
             <button class="btn btn-danger" type="submit">Delete</button>

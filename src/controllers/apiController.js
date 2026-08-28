@@ -3,11 +3,25 @@ const { validationResult, matchedData } = require('express-validator');
 const { Template, Favorite, GenerationHistory } = require('../models');
 const { renderFromTemplate } = require('../services/templateService');
 
+function validationFailure(res, errors) {
+  return res.status(422).json({
+    error: {
+      code: 'VALIDATION_ERROR',
+      message: 'Review the highlighted fields and try again.',
+      details: errors.array().map((error) => ({ field: error.path, message: error.msg }))
+    }
+  });
+}
+
+function stringQuery(value, maxLength = 120) {
+  return typeof value === 'string' ? value.trim().slice(0, maxLength) : '';
+}
+
 exports.preview = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
+      return validationFailure(res, errors);
     }
 
     const data = matchedData(req, { locations: ['body'] });
@@ -28,19 +42,15 @@ exports.preview = async (req, res, next) => {
 
 exports.toggleFavorite = async (req, res, next) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ message: 'Login required.' });
-    }
-
     const templateId = Number(req.params.templateId);
-    const template = await Template.findByPk(templateId);
+    const template = Number.isInteger(templateId) ? await Template.findByPk(templateId) : null;
     if (!template) return res.status(404).json({ message: 'Template not found.' });
 
     const where = { UserId: req.session.user.id, TemplateId: templateId };
-    const existing = await Favorite.findOne({ where });
+    const [favorite, created] = await Favorite.findOrCreate({ where, defaults: where });
 
-    if (existing) {
-      await existing.destroy();
+    if (!created) {
+      await favorite.destroy();
       return res.json({ favorited: false });
     }
 
@@ -53,13 +63,9 @@ exports.toggleFavorite = async (req, res, next) => {
 
 exports.saveHistory = async (req, res, next) => {
   try {
-    if (!req.session.user) {
-      return res.status(401).json({ message: 'Login required.' });
-    }
-
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(422).json({ errors: errors.array() });
+      return validationFailure(res, errors);
     }
 
     const payload = matchedData(req, { locations: ['body'] });
@@ -68,7 +74,11 @@ exports.saveHistory = async (req, res, next) => {
     const template = await Template.findByPk(templateId);
     if (!template) return res.status(404).json({ message: 'Template not found.' });
 
-    const rendered = await renderFromTemplate(templateId, payload, Boolean(payload.includeFollowUps));
+    const rendered = await renderFromTemplate(
+      templateId,
+      payload,
+      Boolean(payload.includeFollowUps)
+    );
 
     const entry = await GenerationHistory.create({
       UserId: req.session.user.id,
@@ -87,8 +97,8 @@ exports.saveHistory = async (req, res, next) => {
 
 exports.getTemplates = async (req, res, next) => {
   try {
-    const search = (req.query.search || '').trim();
-    const category = (req.query.category || '').trim();
+    const search = stringQuery(req.query.search);
+    const category = stringQuery(req.query.category, 80);
     const onlyFavorites = req.query.favorites === 'true';
 
     const where = {};
@@ -105,7 +115,14 @@ exports.getTemplates = async (req, res, next) => {
       });
     }
 
-    const templates = await Template.findAll({ where, include, order: [['category', 'ASC'], ['name', 'ASC']] });
+    const templates = await Template.findAll({
+      where,
+      include,
+      order: [
+        ['category', 'ASC'],
+        ['name', 'ASC']
+      ]
+    });
 
     return res.json(
       templates.map((template) => ({
@@ -113,10 +130,12 @@ exports.getTemplates = async (req, res, next) => {
         name: template.name,
         category: template.category,
         requiredFields: template.requiredFields,
-        isFavorite: req.session.user ? (template.Favorites || []).length > 0 : false
+        ...(req.session.user ? { isFavorite: (template.Favorites || []).length > 0 } : {})
       }))
     );
   } catch (error) {
     return next(error);
   }
 };
+
+exports.validationFailure = validationFailure;
