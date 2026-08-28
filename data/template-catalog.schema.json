@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://outreachops.local/schemas/template-catalog.schema.json",
+  "title": "OutreachOps template catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "templates"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "const": 1 },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/template" }
+    }
+  },
+  "$defs": {
+    "tokenizedText": { "type": "string", "minLength": 1, "maxLength": 2000 },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "name",
+        "category",
+        "summary",
+        "requiredFields",
+        "subjectTemplate",
+        "content",
+        "followUps"
+      ],
+      "properties": {
+        "key": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 80 },
+        "name": { "type": "string", "minLength": 3, "maxLength": 120 },
+        "category": {
+          "enum": [
+            "Guest Post",
+            "Broken Link",
+            "Link Reclamation",
+            "Skyscraper",
+            "Podcast Pitch",
+            "Partnership",
+            "Influencer Collab",
+            "PR Mention"
+          ]
+        },
+        "summary": { "type": "string", "minLength": 20, "maxLength": 240 },
+        "requiredFields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "firstName",
+              "siteName",
+              "siteUrl",
+              "topic",
+              "articleUrl",
+              "brokenUrl",
+              "yourUrl",
+              "offerAngle",
+              "specificCompliment"
+            ]
+          }
+        },
+        "subjectTemplate": { "$ref": "#/$defs/tokenizedText" },
+        "content": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["opener", "value", "proof", "detail", "close"],
+          "properties": {
+            "opener": { "$ref": "#/$defs/tokenizedText" },
+            "value": { "$ref": "#/$defs/tokenizedText" },
+            "proof": { "$ref": "#/$defs/tokenizedText" },
+            "detail": { "$ref": "#/$defs/tokenizedText" },
+            "close": { "$ref": "#/$defs/tokenizedText" }
+          }
+        },
+        "followUps": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["subjectTemplate", "bodyTemplate"],
+            "properties": {
+              "subjectTemplate": { "$ref": "#/$defs/tokenizedText" },
+              "bodyTemplate": { "$ref": "#/$defs/tokenizedText" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

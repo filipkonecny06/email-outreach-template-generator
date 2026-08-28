@@ -1,0 +1,717 @@
+{
+  "$schema": "./template-catalog.schema.json",
+  "version": 1,
+  "templates": [
+    {
+      "key": "guest-post-original-data",
+      "name": "Original Data Guest Post",
+      "category": "Guest Post",
+      "summary": "Pitch an editorial contribution built around proprietary research and a concrete audience takeaway.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "articleUrl",
+        "yourUrl",
+        "offerAngle",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Original {topic} data for {siteName}",
+      "content": {
+        "opener": "Your piece at {articleUrl} stood out—{specificCompliment}.",
+        "value": "I can contribute an original-data article on {topic}, centered on {offerAngle}.",
+        "proof": "The draft would include a transparent methodology, source notes, and a chart your readers can reuse.",
+        "detail": "I would match {siteName}'s editorial voice, avoid promotional claims, and link supporting context at {yourUrl} only where it helps the reader.",
+        "close": "I can send a three-point outline before writing anything."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Outline for the {topic} data story",
+          "bodyTemplate": "{greeting}\n\nI sketched the three findings that would anchor the {topic} article. I can send that outline if it would help you assess the fit.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the loop on {topic}",
+          "bodyTemplate": "{greeting}\n\nI will close the loop here. If original data becomes useful for {siteName}, the research and chart offer still stand.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "guest-post-practical-playbook",
+      "name": "Practical Playbook Contribution",
+      "category": "Guest Post",
+      "summary": "Offer a step-by-step practitioner guide that fills a clearly identified gap in existing coverage.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "articleUrl",
+        "offerAngle",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "A practical {topic} playbook for {siteName}",
+      "content": {
+        "opener": "I enjoyed your guide at {articleUrl}, especially {specificCompliment}.",
+        "value": "A useful next step could be a hands-on {topic} playbook showing {offerAngle} from setup through measurement.",
+        "proof": "I would make every section actionable with examples, decision criteria, and a final checklist rather than generic advice.",
+        "detail": "The proposed structure is: prerequisites, the repeatable workflow, common failure modes, and a compact implementation checklist.",
+        "close": "If that gap is on your roadmap, I can share a tailored outline."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Possible structure for the {topic} playbook",
+          "bodyTemplate": "{greeting}\n\nOne possible structure is workflow, failure modes, examples, then a checklist. Happy to send the full outline for a quick editorial review.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Should I shelve the {topic} outline?",
+          "bodyTemplate": "{greeting}\n\nA final check before I shelve this idea. If the timing is wrong but the topic fits, I am happy to revisit it later.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "guest-post-counterpoint",
+      "name": "Evidence-led Counterpoint",
+      "category": "Guest Post",
+      "summary": "Propose a respectful counterargument that broadens the publication's coverage without chasing controversy.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "articleUrl",
+        "offerAngle",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "A constructive counterpoint on {topic}",
+      "content": {
+        "opener": "I have been thinking about your argument at {articleUrl}; {specificCompliment}.",
+        "value": "I would like to propose a companion piece that tests the other side of {topic}: {offerAngle}.",
+        "proof": "The angle would be evidence-led and charitable to the original argument, with explicit limits and practical implications.",
+        "detail": "Rather than manufacture a debate, the article would identify when each approach works and give readers a decision framework.",
+        "close": "Would a short thesis and source list be useful for your review?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Sources for the {topic} counterpoint",
+          "bodyTemplate": "{greeting}\n\nI have a concise source list and a decision-framework sketch ready. I can send both without any commitment to commission the piece.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Last note on the {topic} companion piece",
+          "bodyTemplate": "{greeting}\n\nI will leave this with you after today. Thanks for considering a companion perspective for {siteName}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "broken-link-resource-replacement",
+      "name": "Broken Resource Replacement",
+      "category": "Broken Link",
+      "summary": "Report a dead reference helpfully and suggest a relevant maintained resource without applying pressure.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "brokenUrl",
+        "yourUrl",
+        "topic",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Broken resource on your {topic} page",
+      "content": {
+        "opener": "While reading {articleUrl}, I noticed that {brokenUrl} no longer resolves.",
+        "value": "The reference appears in the section on {topic}. A maintained alternative is {yourUrl}.",
+        "proof": "It covers the same reader question, includes current examples, and clearly shows its last revision date.",
+        "detail": "Of course, any replacement you trust is better than a dead end; I am sharing ours because it is a close topical match.",
+        "close": "Either way, I thought you would want the broken link on your radar."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Re: broken link on {siteName}",
+          "bodyTemplate": "{greeting}\n\nJust checking that my broken-link note reached you. The dead URL is {brokenUrl}; no response is needed if it is already queued for an update.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Final note: {brokenUrl}",
+          "bodyTemplate": "{greeting}\n\nI will leave this here after one final heads-up about {brokenUrl}. Thanks for maintaining the resource.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "broken-link-outdated-statistic",
+      "name": "Outdated Statistic Replacement",
+      "category": "Broken Link",
+      "summary": "Flag an unavailable statistics source and offer a current, well-documented replacement citation.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "brokenUrl",
+        "yourUrl",
+        "topic",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Updated source for a {topic} statistic",
+      "content": {
+        "opener": "Your article at {articleUrl} explains {topic} clearly—{specificCompliment}.",
+        "value": "One cited statistic points to {brokenUrl}, which currently returns an error. {yourUrl} contains a newer figure for the same claim.",
+        "proof": "The replacement page documents the sample, collection date, and calculation so readers can verify it.",
+        "detail": "If the newer measure is not methodologically comparable, I would keep the wording broad or remove the number rather than imply a false trend.",
+        "close": "I hope the source note saves your team a little research time."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Methodology for the updated {topic} source",
+          "bodyTemplate": "{greeting}\n\nI can also point you directly to the methodology behind the replacement statistic at {yourUrl}. Happy to send the exact section.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing my source update note",
+          "bodyTemplate": "{greeting}\n\nThis is my last note on the unavailable citation. I hope the current source is useful when you next refresh the article.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "broken-link-tool-directory",
+      "name": "Tool Directory Repair",
+      "category": "Broken Link",
+      "summary": "Help a curator repair a dead tool listing while explaining exact replacement fit and maintenance status.",
+      "requiredFields": ["firstName", "siteName", "articleUrl", "brokenUrl", "yourUrl", "topic"],
+      "subjectTemplate": "Dead listing in the {siteName} tools directory",
+      "content": {
+        "opener": "I found a dead listing while using the tools directory at {articleUrl}: {brokenUrl}.",
+        "value": "If you are replacing it, {yourUrl} serves the same {topic} use case and is actively maintained.",
+        "proof": "The page includes pricing, limitations, documentation, and a public support route so visitors can evaluate it before clicking through.",
+        "detail": "I can provide a neutral one-sentence description in your existing format, with no superlatives or affiliate language.",
+        "close": "Thanks for curating the directory; the broken listing was the only issue I encountered."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Details for the replacement tool listing",
+          "bodyTemplate": "{greeting}\n\nIf helpful, I can send the category, neutral description, and maintenance details for {yourUrl} in one reply.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Last heads-up about the dead tool listing",
+          "bodyTemplate": "{greeting}\n\nA final heads-up before I close the loop: the listing at {brokenUrl} is still unavailable.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "reclamation-unlinked-brand-mention",
+      "name": "Unlinked Brand Mention",
+      "category": "Link Reclamation",
+      "summary": "Ask for attribution on an existing brand mention while respecting the editor's linking policy.",
+      "requiredFields": ["firstName", "siteName", "articleUrl", "yourUrl", "specificCompliment"],
+      "subjectTemplate": "Small attribution request for {articleUrl}",
+      "content": {
+        "opener": "Thank you for mentioning our work in {articleUrl}; {specificCompliment}.",
+        "value": "Would you consider linking the existing mention to {yourUrl} so readers can find the referenced source directly?",
+        "proof": "That URL is the canonical page and provides the underlying context rather than a sales landing page.",
+        "detail": "I understand if {siteName}'s policy is to leave brand mentions unlinked, and there is no need to change the surrounding copy.",
+        "close": "Thanks again for including us."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Re: attribution in {siteName}",
+          "bodyTemplate": "{greeting}\n\nA quick follow-up on the existing mention in {articleUrl}. The canonical reference is {yourUrl} if an attribution link fits your policy.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing my attribution request",
+          "bodyTemplate": "{greeting}\n\nNo further follow-up from me after this. We appreciate the mention whether or not a link can be added.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "reclamation-original-image",
+      "name": "Original Image Attribution",
+      "category": "Link Reclamation",
+      "summary": "Request source attribution for a reused original visual in a polite, non-accusatory way.",
+      "requiredFields": ["firstName", "siteName", "articleUrl", "yourUrl", "topic"],
+      "subjectTemplate": "Source link for the {topic} visual",
+      "content": {
+        "opener": "I was glad to see our {topic} visual included in {articleUrl}.",
+        "value": "Could the image credit link to its original source at {yourUrl}?",
+        "proof": "The source page contains the data notes, accessible description, and the most recent version of the asset.",
+        "detail": "A simple linked credit beside the image or in the references section works; there is no need to alter your layout.",
+        "close": "Thank you for finding the visual useful enough to share."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Re: source for the {topic} visual",
+          "bodyTemplate": "{greeting}\n\nJust resurfacing the original source URL, {yourUrl}, in case an editor is able to add it to the image credit.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Final image-credit note",
+          "bodyTemplate": "{greeting}\n\nThis will be my last note. Thanks again for featuring the visual on {siteName}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "reclamation-expert-quote",
+      "name": "Expert Quote Attribution",
+      "category": "Link Reclamation",
+      "summary": "Connect a published expert quote to its primary profile or research source for reader verification.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "yourUrl",
+        "topic",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Source for the {topic} quote",
+      "content": {
+        "opener": "I appreciated how you used our quote in {articleUrl}—{specificCompliment}.",
+        "value": "For readers who want the full context, would you link the attribution to {yourUrl}?",
+        "proof": "The page includes the complete statement, author credentials, and supporting references.",
+        "detail": "The published wording does not need to change; I am only suggesting a source link on the existing attribution.",
+        "close": "Thank you for representing the point accurately."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Context for the quote in {articleUrl}",
+          "bodyTemplate": "{greeting}\n\nThe full source behind the quote is at {yourUrl}. Sharing once more in case adding context is useful to your readers.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the quote-attribution loop",
+          "bodyTemplate": "{greeting}\n\nI will close the loop here. We appreciate the accurate inclusion in {siteName}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "skyscraper-current-research",
+      "name": "Current Research Upgrade",
+      "category": "Skyscraper",
+      "summary": "Offer a more current research asset by stating concrete coverage improvements instead of vague superiority.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "yourUrl",
+        "topic",
+        "offerAngle",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "A current {topic} research reference",
+      "content": {
+        "opener": "I found your {topic} resource at {articleUrl}; {specificCompliment}.",
+        "value": "We recently published {yourUrl}, which updates the subject with {offerAngle}.",
+        "proof": "It adds current data, primary-source citations, and a revision log, while preserving the practical context readers need.",
+        "detail": "It may be a useful supplemental reference where your article discusses recent changes; I am not suggesting it replace stronger existing sources.",
+        "close": "Would you like the two most relevant sections so you can assess it quickly?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "The two relevant sections on {topic}",
+          "bodyTemplate": "{greeting}\n\nI can point you to the exact sections covering {offerAngle}, rather than asking you to review the full resource.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Last note on the updated {topic} source",
+          "bodyTemplate": "{greeting}\n\nI will leave the updated resource with you: {yourUrl}. Thanks for considering it for a future refresh.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "skyscraper-interactive-tool",
+      "name": "Interactive Tool Upgrade",
+      "category": "Skyscraper",
+      "summary": "Suggest an interactive companion tool that lets readers apply concepts from an existing educational article.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "yourUrl",
+        "topic",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Interactive companion for your {topic} guide",
+      "content": {
+        "opener": "Your explanation at {articleUrl} is unusually clear, particularly {specificCompliment}.",
+        "value": "We built an interactive {topic} tool at {yourUrl} that lets readers apply the process with their own inputs.",
+        "proof": "It runs without registration, explains each result, and includes a printable output for readers who prefer to work offline.",
+        "detail": "The tool complements educational coverage rather than repeating it, so it could sit naturally in the implementation section.",
+        "close": "I can provide a direct demo path if you would like to test it first."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Demo path for the {topic} tool",
+          "bodyTemplate": "{greeting}\n\nI can send a pre-filled demo so you can evaluate the tool in under a minute. No account is required.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing my interactive-resource suggestion",
+          "bodyTemplate": "{greeting}\n\nThis is my final note about the companion tool. I hope it is useful for your own work, even if it is not right for the article.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "skyscraper-accessible-visual",
+      "name": "Accessible Visual Explainer",
+      "category": "Skyscraper",
+      "summary": "Offer a reusable diagram with accessibility metadata and transparent sourcing as an editorial enhancement.",
+      "requiredFields": ["firstName", "siteName", "articleUrl", "yourUrl", "topic", "offerAngle"],
+      "subjectTemplate": "Reusable visual for your {topic} article",
+      "content": {
+        "opener": "I used your article at {articleUrl} while researching {topic}.",
+        "value": "We created a visual explainer at {yourUrl} that maps {offerAngle} in a single view.",
+        "proof": "The asset includes source notes, high-resolution and SVG files, plus ready-to-use alt text.",
+        "detail": "You are welcome to embed it with attribution, crop it to your layout, or use it only as a reference for your own design.",
+        "close": "Would the preview and usage notes be helpful?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Preview + alt text for the {topic} visual",
+          "bodyTemplate": "{greeting}\n\nI can send a lightweight preview, the source list, and suggested alt text together if your team wants to review the asset.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Last note on the reusable visual",
+          "bodyTemplate": "{greeting}\n\nI will close the loop. The visual remains available at {yourUrl} under the usage terms shown there.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "podcast-tactical-case-study",
+      "name": "Tactical Case Study Guest",
+      "category": "Podcast Pitch",
+      "summary": "Pitch a teachable case study with a clear listener outcome, evidence, and candid lessons learned.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "topic",
+        "offerAngle",
+        "yourUrl",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Podcast idea: the real numbers behind {topic}",
+      "content": {
+        "opener": "I listened to your episode at {articleUrl}; {specificCompliment}.",
+        "value": "A useful follow-on could be a tactical {topic} case study about {offerAngle}, including what failed before the result improved.",
+        "proof": "I can share the timeline, baseline, decision points, and outcome without turning the conversation into a product pitch.",
+        "detail": "Possible listener takeaways are the diagnostic framework, the two experiments that mattered, and the warning signs we would watch next time.",
+        "close": "If it fits {siteName}, I can send a one-page episode brief."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Three takeaways for the {topic} episode",
+          "bodyTemplate": "{greeting}\n\nI narrowed the episode idea to three concrete listener takeaways. Happy to send the one-page brief if useful.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing my podcast pitch",
+          "bodyTemplate": "{greeting}\n\nI will close the loop after this note. Thanks for the thoughtful work you put into {siteName}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "podcast-contrarian-framework",
+      "name": "Contrarian Framework Discussion",
+      "category": "Podcast Pitch",
+      "summary": "Offer a nuanced, defensible framework that challenges common advice and creates a useful host-led discussion.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "topic",
+        "offerAngle",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "A respectful challenge to common {topic} advice",
+      "content": {
+        "opener": "Your conversation at {articleUrl} made me reconsider {topic}; {specificCompliment}.",
+        "value": "I could bring a respectful counter-framework: {offerAngle}.",
+        "proof": "The argument has explicit boundary conditions, examples on both sides, and a practical test listeners can use before choosing an approach.",
+        "detail": "I would welcome pushback from the host—the value is in examining where the conventional rule breaks, not declaring it wrong everywhere.",
+        "close": "Would a five-bullet discussion map help you decide?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Discussion map for the {topic} framework",
+          "bodyTemplate": "{greeting}\n\nI have a five-bullet map with the claim, evidence, limits, counterexample, and listener test. I can send it in the body of an email.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Final note on the {topic} discussion",
+          "bodyTemplate": "{greeting}\n\nNo more nudges from me after this. If the framework becomes timely later, I would be glad to revisit it.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "podcast-audience-clinic",
+      "name": "Audience Question Clinic",
+      "category": "Podcast Pitch",
+      "summary": "Propose an audience-led clinic episode with scoped expertise and useful answers to real submitted questions.",
+      "requiredFields": ["firstName", "siteName", "topic", "offerAngle", "yourUrl"],
+      "subjectTemplate": "Audience clinic idea for {siteName}: {topic}",
+      "content": {
+        "opener": "I have an audience-led format idea for {siteName} around {topic}.",
+        "value": "Listeners could submit short scenarios, and I would diagnose them live using {offerAngle} as the decision framework.",
+        "proof": "My relevant background and published work are summarized at {yourUrl}, including the limits of what I can responsibly advise on.",
+        "detail": "We could pre-screen questions, anonymize sensitive details, and end each answer with one next step and one common mistake.",
+        "close": "Would that format be useful for an upcoming Q&A slot?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Sample questions for the {topic} clinic",
+          "bodyTemplate": "{greeting}\n\nI drafted three sample audience questions to make the format concrete. I can send them with a proposed 25-minute rundown.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the audience-clinic idea",
+          "bodyTemplate": "{greeting}\n\nI will leave the clinic idea with you. Thanks for considering a practical audience-first format.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "partnership-co-marketing-research",
+      "name": "Co-marketing Research Project",
+      "category": "Partnership",
+      "summary": "Propose a balanced joint research project with clear contributions, ownership, and distribution expectations.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "offerAngle",
+        "yourUrl",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Joint {topic} research idea",
+      "content": {
+        "opener": "I have followed {siteName}'s work on {topic}; {specificCompliment}.",
+        "value": "There may be a strong co-marketing project in combining your audience insight with our {offerAngle} capability.",
+        "proof": "We can own research design and analysis, document the method, and share editable assets and raw aggregate results.",
+        "detail": "Before committing, I suggest we agree on scope, review rights, attribution, lead handling, and a simple exit point if the data is not useful.",
+        "close": "Would a one-page concept note be worth reviewing?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "One-page scope for the joint {topic} study",
+          "bodyTemplate": "{greeting}\n\nI can send a one-page scope covering contributions, timeline, ownership, and distribution—enough to assess fit without scheduling a call.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the research-partnership idea",
+          "bodyTemplate": "{greeting}\n\nI will close this thread. If joint research becomes a priority, our relevant work remains available at {yourUrl}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "partnership-webinar-workshop",
+      "name": "Joint Workshop Proposal",
+      "category": "Partnership",
+      "summary": "Suggest a workshop with complementary teaching roles, a practical artifact, and low-friction planning.",
+      "requiredFields": ["firstName", "siteName", "topic", "offerAngle", "specificCompliment"],
+      "subjectTemplate": "Workshop collaboration on {topic}",
+      "content": {
+        "opener": "Your team explains {topic} with unusual clarity—{specificCompliment}.",
+        "value": "I would like to explore a joint workshop where you cover strategy and we teach {offerAngle} through a live exercise.",
+        "proof": "Attendees would leave with a completed worksheet, recording, and implementation checklist rather than a sales presentation.",
+        "detail": "We can handle the run-of-show and production; both teams would approve promotion, speaker data use, and the follow-up sequence in advance.",
+        "close": "Should I send a sample agenda and division of responsibilities?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Sample agenda for the {topic} workshop",
+          "bodyTemplate": "{greeting}\n\nThe proposed format is 10 minutes of context, 25 minutes of guided work, and 10 minutes of questions. I can send the full agenda.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Last note on the joint workshop",
+          "bodyTemplate": "{greeting}\n\nI will pause the workshop idea here. If the format fits a later campaign, I would be glad to reopen it.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "partnership-integration-launch",
+      "name": "Integration Launch Partnership",
+      "category": "Partnership",
+      "summary": "Frame a product integration collaboration around shared user value, technical readiness, and explicit ownership.",
+      "requiredFields": ["firstName", "siteName", "topic", "offerAngle", "yourUrl"],
+      "subjectTemplate": "Integration idea for {siteName} users",
+      "content": {
+        "opener": "I see a practical overlap between {siteName} and our work on {topic}.",
+        "value": "A lightweight integration could let shared users {offerAngle} without rebuilding their workflow.",
+        "proof": "Our relevant API documentation and current constraints are at {yourUrl}; the first version can stay narrow and reversible.",
+        "detail": "We would propose the technical scope, support ownership, security review, success metric, and deprecation path before discussing launch promotion.",
+        "close": "Is there an integrations owner who would be open to a short technical brief?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Technical brief for the {siteName} integration",
+          "bodyTemplate": "{greeting}\n\nI can send a two-page technical brief with the user flow, endpoints, security assumptions, and maintenance ownership.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the integration thread",
+          "bodyTemplate": "{greeting}\n\nI will close the loop for now. The narrow integration concept remains available if priorities change.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "influencer-hands-on-review",
+      "name": "Independent Hands-on Review",
+      "category": "Influencer Collab",
+      "summary": "Invite an independent product review with full disclosure, editorial control, and no required positive coverage.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "offerAngle",
+        "yourUrl",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Independent {topic} review opportunity",
+      "content": {
+        "opener": "I value how {siteName} reviews {topic}, especially {specificCompliment}.",
+        "value": "Would you be interested in independently testing {yourUrl}, with access to {offerAngle}?",
+        "proof": "You would keep full editorial control, publish only if it serves your audience, and disclose any complimentary access or compensation.",
+        "detail": "We can provide a test account and technical answers, but we will not request pre-publication approval beyond correcting factual errors you choose to share.",
+        "close": "If relevant, I can send the test scope and disclosure terms in writing."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Test scope for the independent review",
+          "bodyTemplate": "{greeting}\n\nI can send the access period, feature scope, disclosure terms, and support contact in one concise note.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the review invitation",
+          "bodyTemplate": "{greeting}\n\nThis is my last follow-up. Thank you for protecting the independence that makes your reviews useful.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "influencer-educational-live",
+      "name": "Educational Live Session",
+      "category": "Influencer Collab",
+      "summary": "Propose a live teaching session shaped around audience value, moderation, and transparent sponsorship.",
+      "requiredFields": ["firstName", "siteName", "topic", "offerAngle", "specificCompliment"],
+      "subjectTemplate": "Live {topic} teardown for your audience",
+      "content": {
+        "opener": "Your audience discussions around {topic} are consistently practical—{specificCompliment}.",
+        "value": "I would love to co-host a live teardown where we apply {offerAngle} to volunteer examples from the audience.",
+        "proof": "The session would be educational first, with pre-agreed disclosure, moderation rules, and no collection of attendee data without consent.",
+        "detail": "We can provide the worksheet and production support while you lead the questions and keep the session aligned with your community.",
+        "close": "Would a short run-of-show help you evaluate the format?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Run-of-show for the live {topic} teardown",
+          "bodyTemplate": "{greeting}\n\nI drafted a 40-minute run-of-show with audience safeguards and clear teaching outcomes. Happy to send it asynchronously.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Last note on the live-session idea",
+          "bodyTemplate": "{greeting}\n\nI will leave the collaboration idea here. Thanks for the thoughtful community you have built at {siteName}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "influencer-community-challenge",
+      "name": "Community Challenge Collaboration",
+      "category": "Influencer Collab",
+      "summary": "Design a participatory community challenge with clear rules, fair selection, privacy, and a useful outcome.",
+      "requiredFields": ["firstName", "siteName", "topic", "offerAngle", "yourUrl"],
+      "subjectTemplate": "A practical {topic} challenge for {siteName}",
+      "content": {
+        "opener": "I have a community-first collaboration idea for {siteName} around {topic}.",
+        "value": "We could run a short challenge where participants use {offerAngle} to create a useful artifact, not simply post promotional content.",
+        "proof": "We would publish clear eligibility, judging criteria, privacy terms, prize value, and sponsor disclosure before entries open.",
+        "detail": "Our team can supply the workbook and prizes at {yourUrl}; your team would retain final say over community fit and winner selection.",
+        "close": "Would you like a one-page concept with safeguards and workload estimates?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "One-page plan for the {topic} challenge",
+          "bodyTemplate": "{greeting}\n\nI can send the timeline, roles, judging criteria, privacy notes, and estimated moderation load on one page.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the community-challenge idea",
+          "bodyTemplate": "{greeting}\n\nI will close this thread. If a participatory format becomes useful later, the concept is easy to adapt.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "pr-rapid-expert-comment",
+      "name": "Rapid Expert Commentary",
+      "category": "PR Mention",
+      "summary": "Offer timely expert context to a journalist with clear credentials, availability, and zero publication pressure.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "offerAngle",
+        "yourUrl",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Source available today on {topic}",
+      "content": {
+        "opener": "I saw {siteName}'s recent coverage of {topic}; {specificCompliment}.",
+        "value": "If you are following the story, I can provide on-record context about {offerAngle} today.",
+        "proof": "My relevant credentials and prior work are at {yourUrl}; I can distinguish observed facts, professional interpretation, and uncertainty.",
+        "detail": "I am available by email or a brief call and can respond to a specific question without expecting a quote or link.",
+        "close": "Is there a deadline or angle I should work within?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Availability update for {topic} comment",
+          "bodyTemplate": "{greeting}\n\nI remain available today for a concise, on-record answer about {offerAngle}. No reply is needed if your source list is set.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Withdrawing the time-sensitive source offer",
+          "bodyTemplate": "{greeting}\n\nI am closing this time-sensitive offer so it does not clutter your inbox. Feel free to keep {yourUrl} for future background.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "pr-original-data-brief",
+      "name": "Original Data Brief",
+      "category": "PR Mention",
+      "summary": "Share embargo-ready original findings with methodology, limitations, and a concise relevance statement.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "topic",
+        "offerAngle",
+        "yourUrl",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "New data on {topic}: {offerAngle}",
+      "content": {
+        "opener": "Your reporting on {topic} has been valuable, particularly {specificCompliment}.",
+        "value": "We have new data showing {offerAngle}, with the full research brief at {yourUrl}.",
+        "proof": "The brief includes sample details, field dates, question wording, limitations, and downloadable tables.",
+        "detail": "I can share the material under a clearly stated embargo, arrange access to the researcher, or simply answer methodology questions by email.",
+        "close": "Would the top three findings and methodology summary be useful?"
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Methodology + top findings on {topic}",
+          "bodyTemplate": "{greeting}\n\nI can send the top three findings with sample details and limitations in the email body for a fast relevance check.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Closing the {topic} data brief",
+          "bodyTemplate": "{greeting}\n\nI will close the loop. The research and downloadable tables remain available at {yourUrl}.\n\n{signoff}"
+        }
+      ]
+    },
+    {
+      "key": "pr-correction-context",
+      "name": "Constructive Context Note",
+      "category": "PR Mention",
+      "summary": "Provide a respectful factual clarification with primary evidence and no demand for favorable treatment.",
+      "requiredFields": [
+        "firstName",
+        "siteName",
+        "articleUrl",
+        "topic",
+        "offerAngle",
+        "yourUrl",
+        "specificCompliment"
+      ],
+      "subjectTemplate": "Context for your {topic} article",
+      "content": {
+        "opener": "Thank you for covering {topic} in {articleUrl}; {specificCompliment}.",
+        "value": "I wanted to offer one piece of context: {offerAngle}.",
+        "proof": "The primary supporting material is at {yourUrl}, including dates and the underlying record.",
+        "detail": "I am not asking you to change the article unless this affects its accuracy. If another source contradicts our record, I would appreciate seeing it.",
+        "close": "I am available to clarify the evidence or provide an on-record statement."
+      },
+      "followUps": [
+        {
+          "subjectTemplate": "Primary source for the {topic} context",
+          "bodyTemplate": "{greeting}\n\nFor convenience, the primary record behind my note is {yourUrl}. I am happy to answer a specific verification question.\n\n{signoff}"
+        },
+        {
+          "subjectTemplate": "Final context note on {articleUrl}",
+          "bodyTemplate": "{greeting}\n\nThis is my final follow-up. Thank you for considering the additional context, regardless of whether an update is warranted.\n\n{signoff}"
+        }
+      ]
+    }
+  ]
+}

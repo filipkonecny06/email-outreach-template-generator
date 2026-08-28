@@ -11,6 +11,16 @@ function renderAuthPage(req, res, type, errors = [], values = {}) {
   });
 }
 
+function establishSession(req, user) {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((regenerateError) => {
+      if (regenerateError) return reject(regenerateError);
+      req.session.user = { id: user.id, email: user.email };
+      return req.session.save((saveError) => (saveError ? reject(saveError) : resolve()));
+    });
+  });
+}
+
 exports.showLogin = (req, res) => renderAuthPage(req, res, 'login');
 exports.showRegister = (req, res) => renderAuthPage(req, res, 'register');
 
@@ -24,14 +34,20 @@ exports.postRegister = async (req, res, next) => {
     const { email, password } = req.body;
     const existing = await User.findOne({ where: { email } });
     if (existing) {
-      return renderAuthPage(req, res, 'register', [{ msg: 'Email is already in use.', path: 'email' }], req.body);
+      return renderAuthPage(
+        req,
+        res,
+        'register',
+        [{ msg: 'Email is already in use.', path: 'email' }],
+        req.body
+      );
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({ email, passwordHash });
 
-    req.session.user = { id: user.id, email: user.email };
-    return req.session.save(() => res.redirect('/generator'));
+    await establishSession(req, user);
+    return res.redirect('/generator');
   } catch (error) {
     return next(error);
   }
@@ -47,16 +63,28 @@ exports.postLogin = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      return renderAuthPage(req, res, 'login', [{ msg: 'Invalid credentials.', path: 'email' }], req.body);
+      return renderAuthPage(
+        req,
+        res,
+        'login',
+        [{ msg: 'Invalid credentials.', path: 'email' }],
+        req.body
+      );
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
-      return renderAuthPage(req, res, 'login', [{ msg: 'Invalid credentials.', path: 'password' }], req.body);
+      return renderAuthPage(
+        req,
+        res,
+        'login',
+        [{ msg: 'Invalid credentials.', path: 'password' }],
+        req.body
+      );
     }
 
-    req.session.user = { id: user.id, email: user.email };
-    return req.session.save(() => res.redirect('/generator'));
+    await establishSession(req, user);
+    return res.redirect('/generator');
   } catch (error) {
     return next(error);
   }
@@ -65,7 +93,9 @@ exports.postLogin = async (req, res, next) => {
 exports.logout = (req, res, next) => {
   req.session.destroy((err) => {
     if (err) return next(err);
-    res.clearCookie('sid');
+    res.clearCookie(process.env.SESSION_COOKIE_NAME || 'outreach.sid');
     return res.redirect('/');
   });
 };
+
+exports.establishSession = establishSession;

@@ -29,7 +29,10 @@ exports.generatorPage = async (req, res, next) => {
       selectedTemplate = templates.find((t) => t.id === templateId) || null;
     }
 
-    const favorites = await Favorite.findAll({ where: { UserId: req.session.user.id }, attributes: ['TemplateId'] });
+    const favorites = await Favorite.findAll({
+      where: { UserId: req.session.user.id },
+      attributes: ['TemplateId']
+    });
 
     res.render('generator', {
       pageTitle: 'Generate Outreach Email',
@@ -52,7 +55,13 @@ exports.templatesPage = async (req, res, next) => {
     if (search) where.name = { [Op.like]: `%${search}%` };
     if (category) where.category = category;
 
-    const templates = await Template.findAll({ where, order: [['category', 'ASC'], ['name', 'ASC']] });
+    const templates = await Template.findAll({
+      where,
+      order: [
+        ['category', 'ASC'],
+        ['name', 'ASC']
+      ]
+    });
 
     res.render('templates', {
       pageTitle: 'Template Browser',
