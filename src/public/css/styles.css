@@ -197,16 +197,8 @@ body {
 .feature-card:hover {
   transform: translateY(-4px);
 }
-.social-proof,
 .faq {
   margin-top: 1.2rem;
-}
-.logo-strip {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  color: var(--muted);
-  letter-spacing: 0.08em;
 }
 .faq-list details {
   border-top: 1px solid var(--border);
