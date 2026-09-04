@@ -1,5 +1,5 @@
 # Shared base keeps Node.js and the working directory identical across every image target.
-FROM node:24-alpine@sha256:e67514e5d0f6c46656005e1b693b2ec9d52e80b641307de684d4a015ba7a4eaf AS base
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS base
 WORKDIR /app
 
 # Copy manifests first so dependency installation remains cached when only source files change.
